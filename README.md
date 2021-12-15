@@ -1,6 +1,6 @@
 # dashboard-nextjs-chakraui-firebase
 
-First, config the environment on .env.local with your firebase configs:
+First, config the environment on `.env.local` with your firebase configs:
 
 ```bash
 NEXT_PUBLIC_FIREBASE_PUBLIC_API_KEY=
