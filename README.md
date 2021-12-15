@@ -11,6 +11,13 @@ NEXT_PUBLIC_FIREBASE_APP_ID=
 
 ```
 
+install dependencies:
+```bash
+npm install
+# or
+yarn
+```
+
 Then, run it:
 ```bash
 npm run dev
