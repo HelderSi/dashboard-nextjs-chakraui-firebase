@@ -28,10 +28,10 @@ yarn dev
 ## Screenshots
 
 ### Login
-![alt text](nextdash-login.jpg)
+![alt text](nextdash-login-page.jpg)
 
 ### Main
-![alt text](nextdash-main.jpg)
+![alt text](nextdash-main-page.jpg)
 
 ### Profile edit
-![alt text](nextdash-edit-profile.jpg)
+![alt text](nextdash-edit-profile-page.jpg)
