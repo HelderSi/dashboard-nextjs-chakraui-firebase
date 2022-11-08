@@ -20,17 +20,17 @@ export default function DashboardLayout({ children }: Props) {
   const { asPath, push } = useRouter()
 
   useEffect(() => {
-    if(!authUser && !PUBLIC_ROUTES.includes(asPath)) push('/signin')
+    if (!authUser && !PUBLIC_ROUTES.includes(asPath)) push('/signin')
   }, [asPath, authUser])
 
-  if(PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
+  if (PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
   return (
     <Flex direction="column" h="100vh" mx="auto" px="6" maxWidth={1480}>
-      <Header />
+      {/* <Header /> */}
       <Flex w="100%">
         <Sidebar />
         <Flex mx="auto">
-         {children}
+          {children}
         </Flex>
       </Flex>
     </Flex>

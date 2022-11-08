@@ -1,5 +1,5 @@
 import { HStack, Icon } from "@chakra-ui/react";
-import { RiNotification2Line, RiUserAddLine } from "react-icons/ri";
+import { RiNotification2Line } from "react-icons/ri";
 import ColorModeToggler from "../../molecules/ColorModeToggler";
 
 export function NotificationsNav() {

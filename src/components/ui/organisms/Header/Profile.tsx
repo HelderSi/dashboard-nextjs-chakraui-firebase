@@ -33,7 +33,7 @@ export function Profile({ showProfileData = true }: ProfileProps) {
           </Text>
         </Box>
       )}
-      <Popover>
+      <Popover placement='auto'>
         <PopoverTrigger>
           <Avatar
             size="md"
@@ -42,7 +42,7 @@ export function Profile({ showProfileData = true }: ProfileProps) {
           />
         </PopoverTrigger>
         <PopoverContent mr="4">
-          <PopoverArrow ml="2"/>
+          <PopoverArrow ml="2" />
           <PopoverHeader>Perfil</PopoverHeader>
 
           <PopoverBody>
