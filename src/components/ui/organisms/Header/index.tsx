@@ -1,8 +1,7 @@
-import { Flex, useBreakpointValue, IconButton, Icon } from '@chakra-ui/react'
+import { Flex, useBreakpointValue, IconButton, Icon, Divider } from '@chakra-ui/react'
 import { RiMenuLine } from 'react-icons/ri';
 import { useSidebarDrawer } from 'src/contexts/SidebarDrawerContext';
-import DashboardLogo from '../../atoms/DashboardLogo';
-import { NotificationsNav } from './NotificationsNav';
+import { QuickActionsNav } from './QuickActionsNav';
 import { Profile } from './Profile';
 
 export function Header() {
@@ -19,9 +18,8 @@ export function Header() {
       w="100%"
       h="20"
       mx="auto"
-      mt="4"
-      pb='4'
-      align="center"
+      mt="2"
+      pb='2'
     >
       { !isWideVersion && (
         <IconButton
@@ -32,18 +30,16 @@ export function Header() {
           onClick={onOpen}
           mr="2"
         >
-
         </IconButton>
       )}
-
-      <DashboardLogo />
 
       <Flex
         align="center"
         ml="auto"
         pr="4"
       >
-        <NotificationsNav />
+        <QuickActionsNav />
+        <Divider orientation='vertical' my="8" mx="2"/>
         <Profile showProfileData={isWideVersion} />
       </Flex>
     </Flex>

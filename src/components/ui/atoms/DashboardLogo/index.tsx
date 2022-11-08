@@ -7,6 +7,7 @@ export default function DashboardLogo() {
       fontWeight="bold"
       letterSpacing="tight"
       w="64"
+      p={["4", "8"]}
     >
       NextDash
       <Text as='span' ml="1" color="red.500">.</Text>

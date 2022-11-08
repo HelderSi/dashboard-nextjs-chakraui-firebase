@@ -8,7 +8,8 @@ import {
   DrawerHeader,
   DrawerBody,
   VStack,
-  Icon
+  Icon,
+  Stack
 } from '@chakra-ui/react';
 import { useSidebarDrawer } from 'src/contexts/SidebarDrawerContext';
 import { Divider } from '@chakra-ui/react'
@@ -49,22 +50,21 @@ export function Sidebar() {
   }
 
   return (
-    <VStack as="aside" w="48" mr="8" borderRightWidth={'thin'}>
+    <VStack as="aside"  boxShadow='2xl'>
       <DashboardLogo />
-      <Box flex={1}>
+      <Box flex={1} w={"full"} px={["4", "8"]}>
         <SidebarNav />
       </Box>
+      <Divider orientation='horizontal' mx="4" />
       <Box w={"full"}>
-        <Divider orientation='horizontal' my="4" />
-        <VStack
+        <Stack
           py="4"
-          spacing={["6", "8"]}
-
+          spacing={["6", "8"]} 
+          w={"full"} 
+          px="4"
         >
           <ColorModeToggler />
-          <Icon as={RiNotification2Line} />
-          <Profile showProfileData={false} />
-        </VStack>
+        </Stack>
       </Box>
     </VStack>
   );
