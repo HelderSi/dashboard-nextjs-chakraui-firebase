@@ -25,13 +25,16 @@ export default function DashboardLayout({ children }: Props) {
 
   if (PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
   return (
-    <Flex direction="row" maxWidth={1480}>
+    <Flex direction="row">
       <Sidebar />
       <Flex direction="column" w="full">
         <Header />
-        <Center w="full">
+        <Flex
+          justifyContent="center"
+          alignItems="center"
+        >
           {children}
-        </Center>
+        </Flex>
       </Flex>
     </Flex>
   );

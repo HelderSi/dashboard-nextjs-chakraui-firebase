@@ -18,6 +18,8 @@ export function Header() {
       mt="2"
       pb='2'
       align="center"
+      position={"sticky"}
+      top={"0"}
     >
       {!isWideVersion && (
         <IconButton

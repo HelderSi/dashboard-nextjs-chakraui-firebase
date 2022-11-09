@@ -48,7 +48,18 @@ export function Sidebar() {
     );
   }
 
-  return <VStack as="aside" boxShadow='2xl' h="100vh" px={["2", "4"]}>
+  return <VStack
+    as="aside"
+    align={"left"}
+    boxShadow='2xl'
+    h="100vh"
+    px={["2", "4"]}
+    minW="200"
+    position={"sticky"}
+    left={"0"}
+    top={"0"}
+
+  >
     <DashboardLogo py="4" />
     <SidebarNav />
   </VStack>;

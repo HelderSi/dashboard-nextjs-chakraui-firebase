@@ -8,7 +8,6 @@ export default function DashboardLogo(props: DashboardLogoProps) {
       fontSize={["2xl", "3xl"]}
       fontWeight="bold"
       letterSpacing="tight"
-      w="64"
       {...props}
     >
       NextDash
