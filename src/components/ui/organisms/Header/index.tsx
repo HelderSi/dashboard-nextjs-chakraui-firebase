@@ -15,31 +15,28 @@ export function Header() {
   return (
     <Flex
       as="header"
-      w="100%"
-      h="20"
-      mx="auto"
       mt="2"
       pb='2'
+      align="center"
     >
-      { !isWideVersion && (
+      {!isWideVersion && (
         <IconButton
           aria-label="Open navigation"
           icon={<Icon as={RiMenuLine} />}
           fontSize="24"
           variant="unstyled"
           onClick={onOpen}
-          mr="2"
+          ml="4"
         >
         </IconButton>
       )}
-
       <Flex
         align="center"
         ml="auto"
         pr="4"
       >
         <QuickActionsNav />
-        <Divider orientation='vertical' my="8" mx="2"/>
+        <Divider orientation='vertical' my="8" mx="4" />
         <Profile showProfileData={isWideVersion} />
       </Flex>
     </Flex>

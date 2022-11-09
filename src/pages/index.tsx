@@ -7,22 +7,17 @@ import { Input } from 'src/components/ui/atoms/Input';
 import { Flex } from '@chakra-ui/layout';
 import { Spinner } from '@chakra-ui/react'
 import { useAuth } from 'src/contexts/AuthUserContext';
-import { useRouter } from 'next/router';
-
-
 
 const Dashboard: NextPage = () => {
   const { loading: loadingAuth } = useAuth()
   return (
-      <Flex
-        w="100vw"
-        h="100vh"
-        align="center"
-        justify="center"
-      >
-        {loadingAuth && <Spinner />}
-      </Flex>
-    
+    <Flex
+      align="center"
+      justify="center"
+    >
+      {loadingAuth && <Spinner />}
+    </Flex>
+
   )
 }
 

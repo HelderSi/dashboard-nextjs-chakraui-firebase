@@ -21,12 +21,12 @@ export default function DashboardLayout({ children }: Props) {
 
   useEffect(() => {
     if (!authUser && !PUBLIC_ROUTES.includes(asPath)) push('/signin')
-  }, [asPath, authUser])
+  }, [asPath, authUser, push])
 
   if (PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
   return (
     <Flex direction="row" maxWidth={1480}>
-      <Sidebar /> 
+      <Sidebar />
       <Flex direction="column" w="full">
         <Header />
         <Center w="full">
