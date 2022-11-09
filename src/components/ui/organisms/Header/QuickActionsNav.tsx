@@ -1,6 +1,5 @@
-import { Avatar, AvatarBadge, Box, Button, Center, Flex, HStack, Icon, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, HStack, Icon } from "@chakra-ui/react";
 import { RiNotification2Line, RiSearchLine } from "react-icons/ri";
-import ColorModeToggler from "../../molecules/ColorModeToggler";
 
 export function QuickActionsNav() {
 

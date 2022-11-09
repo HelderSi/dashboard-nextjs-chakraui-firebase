@@ -1,5 +1,5 @@
 import { useEffect, ReactNode } from "react";
-import { Center, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { Header } from "src/components/ui/organisms/Header";
 import { Sidebar } from "src/components/ui/organisms/Sidebar";
 import { useAuth } from "src/contexts/AuthUserContext";

@@ -1,8 +1,7 @@
-import { Flex, Stack } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import {
   RiToolsFill,
   RiDashboardLine,
-  RiStore2Line,
   RiHeart2Line
 } from "react-icons/ri";
 import { NavLink } from "./NavLink";

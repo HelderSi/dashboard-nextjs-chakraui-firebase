@@ -1,4 +1,4 @@
-import { Flex, useBreakpointValue, IconButton, Icon, Divider } from '@chakra-ui/react'
+import { Flex, useBreakpointValue, IconButton, Icon, Divider, useColorModeValue } from '@chakra-ui/react'
 import { RiMenuLine } from 'react-icons/ri';
 import { useSidebarDrawer } from 'src/contexts/SidebarDrawerContext';
 import { QuickActionsNav } from './QuickActionsNav';
@@ -6,6 +6,7 @@ import { Profile } from './Profile';
 
 export function Header() {
   const { onOpen } = useSidebarDrawer();
+  const bg = useColorModeValue('white', 'gray.900')
 
   const isWideVersion = useBreakpointValue({
     base: false,
@@ -15,11 +16,11 @@ export function Header() {
   return (
     <Flex
       as="header"
-      mt="2"
-      pb='2'
       align="center"
       position={"sticky"}
       top={"0"}
+      bgColor={bg}
+      boxShadow='xs'
     >
       {!isWideVersion && (
         <IconButton

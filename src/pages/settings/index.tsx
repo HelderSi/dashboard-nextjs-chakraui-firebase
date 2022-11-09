@@ -10,7 +10,6 @@ const Settings: NextPage = () => {
       >
        Configurações Gerais
       </Flex>
-    
   )
 }
 

@@ -1,5 +1,4 @@
 import {
-  Box,
   Drawer,
   DrawerOverlay,
   useBreakpointValue,
@@ -8,13 +7,8 @@ import {
   DrawerHeader,
   DrawerBody,
   VStack,
-  Icon,
-  Stack
 } from '@chakra-ui/react';
 import { useSidebarDrawer } from 'src/contexts/SidebarDrawerContext';
-import { Divider } from '@chakra-ui/react'
-import ColorModeToggler from '../../molecules/ColorModeToggler';
-import { SidebarMainNav } from './SidebarMainNav';
 import DashboardLogo from '../../atoms/DashboardLogo';
 import { SidebarNav } from './SidebarNav';
 
@@ -58,7 +52,7 @@ export function Sidebar() {
     position={"sticky"}
     left={"0"}
     top={"0"}
-
+    zIndex={999}
   >
     <DashboardLogo py="4" />
     <SidebarNav />
