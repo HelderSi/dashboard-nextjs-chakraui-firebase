@@ -1,24 +1,29 @@
-import { Stack } from "@chakra-ui/react";
 import {
-  RiToolsFill,
-  RiDashboardLine,
-  RiStore2Line,
-  RiHeart2Line
-} from "react-icons/ri";
-import { NavLink } from "./NavLink";
-import { NavSection } from "./NavSection";
+    Box,
+    VStack,
+    Stack,
+    Flex
+} from '@chakra-ui/react';
+import { Divider } from '@chakra-ui/react'
+import ColorModeToggler from '../../molecules/ColorModeToggler';
+import { SidebarMainNav } from './SidebarMainNav';
+import DashboardLogo from '../../atoms/DashboardLogo';
 
 export function SidebarNav() {
-  return (
-    <Stack spacing="12" aling="flex-start">
-      <NavSection title="PRINCIPAL">
-        <NavLink icon={RiDashboardLine} href="/dashboard">Dashboard</NavLink>
-        <NavLink icon={RiHeart2Line} href="/favorites">Favoritos</NavLink>
-      </NavSection>
 
-      <NavSection title="CONFIGURAÇÕES">
-        <NavLink icon={RiToolsFill} href="/settings">Geral</NavLink>
-      </NavSection>
-    </Stack>
-  );
+    return (
+        <Flex flexDirection={"column"} flex="1" w={"full"} h={"full"}>
+            <Flex flex="1">
+                <SidebarMainNav />
+            </Flex>
+            <Divider orientation='horizontal' />
+            <Stack
+                py="4"
+                spacing={["6", "8"]}
+                w={"full"}
+            >
+                <ColorModeToggler />
+            </Stack>
+        </Flex>
+    );
 }

@@ -13,7 +13,9 @@ import {
   Button,
   VStack,
   Divider,
+  HStack,
 } from "@chakra-ui/react";
+
 import { useAuth } from "src/contexts/AuthUserContext";
 
 interface ProfileProps {
@@ -25,26 +27,28 @@ export function Profile({ showProfileData = true }: ProfileProps) {
 
   return (
     <Flex align="center">
-      {showProfileData && (
-        <Box mr="4" textAlign="right">
-          <Text>{authUser?.displayName || "Nome não informado"}</Text>
-          <Text color="gray.300" fontSize="small">
-            {authUser?.email}
-          </Text>
-        </Box>
-      )}
-      <Popover>
+      <Popover placement='auto'>
         <PopoverTrigger>
-          <Avatar
-            size="md"
-            name={authUser?.displayName || ""}
-            src={authUser?.photoURL || ""}
-          />
+          <HStack w={"full"}>
+            <Avatar
+              size="md"
+              name={authUser?.displayName || ""}
+              src={authUser?.photoURL || ""}
+            />
+            {showProfileData && (
+              <Box ml="4" textAlign="left">
+                <Text>{authUser?.displayName || "Nome não informado"}</Text>
+                <Text color="gray.300" fontSize="small">
+                  {authUser?.email}
+                </Text>
+              </Box>
+            )}
+          </HStack>
         </PopoverTrigger>
-        <PopoverContent mr="4">
-          <PopoverArrow ml="2"/>
-          <PopoverHeader>Perfil</PopoverHeader>
 
+        <PopoverContent mr="4">
+          <PopoverArrow ml="2" />
+          <PopoverHeader>Perfil</PopoverHeader>
           <PopoverBody>
             <VStack alignItems="flex-start">
               <Link href={"/profile/edit"}>

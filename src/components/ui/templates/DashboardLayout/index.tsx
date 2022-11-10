@@ -1,5 +1,5 @@
 import { useEffect, ReactNode } from "react";
-import { Flex } from "@chakra-ui/react";
+import { Flex, useColorModeValue } from "@chakra-ui/react";
 import { Header } from "src/components/ui/organisms/Header";
 import { Sidebar } from "src/components/ui/organisms/Sidebar";
 import { useAuth } from "src/contexts/AuthUserContext";
@@ -18,19 +18,23 @@ const PUBLIC_ROUTES = [
 export default function DashboardLayout({ children }: Props) {
   const { authUser } = useAuth()
   const { asPath, push } = useRouter()
+  const bg = useColorModeValue('gray.50', 'gray.800')
 
   useEffect(() => {
-    if(!authUser && !PUBLIC_ROUTES.includes(asPath)) push('/signin')
-  }, [asPath, authUser])
+    if (!authUser && !PUBLIC_ROUTES.includes(asPath)) push('/signin')
+  }, [asPath, authUser, push])
 
-  if(PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
+  if (PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
   return (
-    <Flex direction="column" h="100vh" mx="auto" px="6" maxWidth={1480}>
-      <Header />
-      <Flex w="100%">
-        <Sidebar />
-        <Flex mx="auto">
-         {children}
+    <Flex direction="row">
+      <Sidebar />
+      <Flex direction="column" w="full">
+        <Header />
+        <Flex
+          bgColor={bg}
+          minH={"100vh"}
+        >
+          {children}
         </Flex>
       </Flex>
     </Flex>

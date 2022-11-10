@@ -1,17 +1,11 @@
 import type { NextPage } from 'next'
-import { Flex } from '@chakra-ui/layout';
+import { Box } from '@chakra-ui/react';
 
 const Dashboard: NextPage = () => {
   return (
-      <Flex
-        w="100vw"
-        h="100vh"
-        align="center"
-        justify="center"
-      >
-       Dashboard
-      </Flex>
-    
+    <Box w="full" justify={"start"} align="start">
+      Dashboard
+    </Box>
   )
 }
 

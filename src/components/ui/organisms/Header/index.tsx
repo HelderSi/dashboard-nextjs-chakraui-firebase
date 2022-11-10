@@ -1,12 +1,12 @@
-import { Flex, useBreakpointValue, IconButton, Icon } from '@chakra-ui/react'
+import { Flex, useBreakpointValue, IconButton, Icon, Divider, useColorModeValue } from '@chakra-ui/react'
 import { RiMenuLine } from 'react-icons/ri';
 import { useSidebarDrawer } from 'src/contexts/SidebarDrawerContext';
-import DashboardLogo from '../../atoms/DashboardLogo';
-import { NotificationsNav } from './NotificationsNav';
+import { QuickActionsNav } from './QuickActionsNav';
 import { Profile } from './Profile';
 
 export function Header() {
   const { onOpen } = useSidebarDrawer();
+  const bg = useColorModeValue('white', 'gray.900')
 
   const isWideVersion = useBreakpointValue({
     base: false,
@@ -16,34 +16,31 @@ export function Header() {
   return (
     <Flex
       as="header"
-      w="100%"
-      h="20"
-      mx="auto"
-      mt="4"
-      pb='4'
       align="center"
+      position={"sticky"}
+      top={"0"}
+      bgColor={bg}
+      boxShadow='sm'
+      zIndex={99}
     >
-      { !isWideVersion && (
+      {!isWideVersion && (
         <IconButton
           aria-label="Open navigation"
           icon={<Icon as={RiMenuLine} />}
           fontSize="24"
           variant="unstyled"
           onClick={onOpen}
-          mr="2"
+          ml="4"
         >
-
         </IconButton>
       )}
-
-      <DashboardLogo />
-
       <Flex
         align="center"
         ml="auto"
         pr="4"
       >
-        <NotificationsNav />
+        <QuickActionsNav />
+        <Divider orientation='vertical' my="8" mx="4" />
         <Profile showProfileData={isWideVersion} />
       </Flex>
     </Flex>

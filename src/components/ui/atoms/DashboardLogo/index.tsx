@@ -1,12 +1,14 @@
-import { Text } from "@chakra-ui/react";
+import { Text, TextProps } from "@chakra-ui/react";
 
-export default function DashboardLogo() {
+interface DashboardLogoProps extends TextProps { }
+
+export default function DashboardLogo(props: DashboardLogoProps) {
   return (
     <Text
       fontSize={["2xl", "3xl"]}
       fontWeight="bold"
       letterSpacing="tight"
-      w="64"
+      {...props}
     >
       NextDash
       <Text as='span' ml="1" color="red.500">.</Text>
