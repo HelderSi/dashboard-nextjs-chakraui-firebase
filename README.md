@@ -35,3 +35,4 @@ yarn dev
 
 ### Profile edit
 ![alt text](dash-edit-profile.png)
+![alt text](dash-edit-profile-2.png)
