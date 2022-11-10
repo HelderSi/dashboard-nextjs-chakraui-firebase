@@ -3,7 +3,7 @@ import { Box } from '@chakra-ui/react';
 
 const Favorites: NextPage = () => {
   return (
-    <Box  w="full">
+    <Box w="full">
       Favoritos
     </Box>
   )

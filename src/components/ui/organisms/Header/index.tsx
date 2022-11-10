@@ -20,7 +20,8 @@ export function Header() {
       position={"sticky"}
       top={"0"}
       bgColor={bg}
-      boxShadow='xs'
+      boxShadow='sm'
+      zIndex={99}
     >
       {!isWideVersion && (
         <IconButton

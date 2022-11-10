@@ -4,7 +4,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
 import { Input } from "src/components/ui/atoms/Input";
 import { Stack, Box } from "@chakra-ui/layout";
-import { useToast } from "@chakra-ui/react";
+import { useColorModeValue, useToast } from "@chakra-ui/react";
 import { Button } from "@chakra-ui/button";
 import { useAuth } from "src/contexts/AuthUserContext";
 
@@ -28,6 +28,7 @@ const ChangePassword: NextPage = () => {
   });
   const { errors } = formState;
   const { updateCurrentUserPassword } = useAuth();
+  const cardBg = useColorModeValue('white', 'gray.700')
 
   const toast = useToast();
 
@@ -57,13 +58,15 @@ const ChangePassword: NextPage = () => {
   };
 
   return (
-    <Stack w="100vw" h="100vh" align="center" maxW="500">
+    <Stack w="full" align="center" justify="start" mt="6">
       <Box
         as="form"
         onSubmit={handleSubmit(handleUpdatePassword)}
         w="100%"
-        pb="6"
-        pt="6"
+        p="8"
+        maxW="500"
+        boxShadow='xs' rounded='md'
+        bgColor={cardBg}
       >
         <Input
           label="Senha antiga"
