@@ -24,3 +24,14 @@ npm run dev
 # or
 yarn dev
 ```
+
+## Screenshots
+
+### Login
+![alt text](dash-login.jpg)
+
+### Main
+![alt text](dash-main.jpg)
+
+### Profile edit
+![alt text](dash-edit-profile.jpg)
