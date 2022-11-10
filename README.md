@@ -28,10 +28,10 @@ yarn dev
 ## Screenshots
 
 ### Login
-![alt text](dash-login.jpg)
+![alt text](dash-login.png)
 
 ### Main
-![alt text](dash-main.jpg)
+![alt text](dash-main.png)
 
 ### Profile edit
-![alt text](dash-edit-profile.jpg)
+![alt text](dash-edit-profile.png)
