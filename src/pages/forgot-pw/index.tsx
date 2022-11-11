@@ -30,26 +30,26 @@ const ForgotPassword: NextPage = () => {
 
   const handleSendPasswordResetEmail: SubmitHandler<SignInFormData> = async (values) => {
     await sendPasswordResetEmail(values.email)
-            .then( () => {
-              toast({
-                title: 'Concluído',
-                description: `Um email de recuperação de senha foi enviado para ${values.email}`,
-                status: 'success',
-                duration: null,
-                isClosable: true,
-                position: 'top'
-              })
-            }).catch( err => {
-              console.log(err.message)
-              toast({
-                title: 'Erro',
-                description: 'Ocorreu um erro ao logar',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-                position: 'top'
-              })
-            })
+      .then(() => {
+        toast({
+          title: 'Concluído',
+          description: `Um email de recuperação de senha foi enviado para ${values.email}`,
+          status: 'success',
+          duration: null,
+          isClosable: true,
+          position: 'top'
+        })
+      }).catch(err => {
+        console.log(err.message)
+        toast({
+          title: 'Erro',
+          description: 'Ocorreu um erro ao logar',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+          position: 'top'
+        })
+      })
   }
 
   return (
@@ -64,7 +64,7 @@ const ForgotPassword: NextPage = () => {
         onSubmit={handleSubmit(handleSendPasswordResetEmail)}
         width="100%"
         maxWidth={360}
-        bg={useColorModeValue("gray.50","gray.700")}
+        bg={useColorModeValue("gray.50", "gray.700")}
         p="8"
         borderRadius={8}
         flexDir="column"
@@ -73,7 +73,7 @@ const ForgotPassword: NextPage = () => {
           <Box align='center' mb={4}>
             <DashboardLogo />
           </Box>
-          <Heading size='md'>Informe o endereço de e-mail cadastrado.</Heading>
+          <Heading size='md'>Informe o e-mail cadastrado.</Heading>
           <Input
             type="email"
             label="E-mail"
@@ -88,10 +88,10 @@ const ForgotPassword: NextPage = () => {
           size="lg"
           isLoading={formState.isSubmitting}
         >
-          Recuperar senha 
+          Recuperar senha
         </Button>
         <Button
-        mt={8}
+          mt={8}
           as={'a'}
           fontSize={'sm'}
           fontWeight={600}
