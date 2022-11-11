@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { NextPage } from 'next'
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Input } from 'src/components/ui/atoms/Input';
-import { Flex, HStack, Stack, Text, Box, Center, Divider } from '@chakra-ui/layout';
-import { Avatar, Heading, Spinner, useColorModeValue, useToast } from '@chakra-ui/react'
+import { Flex, Stack, Text, Box } from '@chakra-ui/layout';
+import { Avatar, Heading, useColorModeValue, useToast } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/button';
 import { Icon } from '@chakra-ui/icon';
 import { useAuth } from 'src/contexts/AuthUserContext';
@@ -23,7 +23,7 @@ const profileFormSchema = yup.object().shape({
 
 const ProfileEdit: NextPage = () => {
     const [sendingVerificationEmail, setSendingVerificationEmail] = useState(false)
-    const { register, handleSubmit, formState, setValue } = useForm({
+    const { register, handleSubmit, formState, setValue } = useForm<ProfileFormData>({
         resolver: yupResolver(profileFormSchema)
     });
     const { errors } = formState;
@@ -36,7 +36,7 @@ const ProfileEdit: NextPage = () => {
         authUser?.displayName && setValue('name', authUser.displayName)
     }, [setValue, authUser])
 
-    const handleUpdateProfile: SubmitHandler<ProfileFormData> = async (values) => {
+    const handleUpdateProfile = async (values: ProfileFormData) => {
         try {
             await updateCurrentUserProfile({ displayName: values.name })
             toast({
@@ -86,11 +86,11 @@ const ProfileEdit: NextPage = () => {
     }, [toast, authUser])
 
     const handleDeleteAvatarPhoto = useCallback(async () => {
-        authUser?.photoURL && await storage.deleteObject(authUser.photoURL).then(() => {
+        authUser?.photoURL && (await storage.deleteObject(authUser.photoURL).then(() => {
             updateCurrentUserProfile({
                 photoURL: ''
             })
-        })
+        }))
     }, [authUser, updateCurrentUserProfile])
 
     return (
@@ -116,7 +116,6 @@ const ProfileEdit: NextPage = () => {
                         w="100%"
                         pb='6'
                     >
-
                         <Input
                             label="Nome"
                             maxW={600}
@@ -133,7 +132,6 @@ const ProfileEdit: NextPage = () => {
                         >
                             Salvar
                         </Button>
-
                     </Box>
                 </Box>
                 <Box w="100%" py="4">

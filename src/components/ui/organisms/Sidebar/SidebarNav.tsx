@@ -7,10 +7,8 @@ import {
 import { Divider } from '@chakra-ui/react'
 import ColorModeToggler from '../../molecules/ColorModeToggler';
 import { SidebarMainNav } from './SidebarMainNav';
-import DashboardLogo from '../../atoms/DashboardLogo';
 
 export function SidebarNav() {
-
     return (
         <Flex flexDirection={"column"} flex="1" w={"full"} h={"full"}>
             <Flex flex="1">

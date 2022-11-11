@@ -4,19 +4,18 @@ import {
   RiDashboardLine,
   RiHeart2Line
 } from "react-icons/ri";
-import { NavLink } from "./NavLink";
+import { NavButton } from "./NavButton";
 import { NavSection } from "./NavSection";
 
 export function SidebarMainNav() {
   return (
-    <Stack spacing="8" aling="flex-start">
+    <Stack spacing="8">
       <NavSection title="PRINCIPAL">
-        <NavLink icon={RiDashboardLine} href="/dashboard">Dashboard</NavLink>
-        <NavLink icon={RiHeart2Line} href="/favorites">Favoritos</NavLink>
+        <NavButton icon={RiDashboardLine} title="Dashboard" href="/dashboard" />
+        <NavButton icon={RiHeart2Line} title="Favoritos" href="/favorites" />
       </NavSection>
-
       <NavSection title="CONFIGURAÇÕES">
-        <NavLink icon={RiToolsFill} href="/settings">Geral</NavLink>
+        <NavButton icon={RiToolsFill} title="Geral" href="/settings" />
       </NavSection>
     </Stack>
   );

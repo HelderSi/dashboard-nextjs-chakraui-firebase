@@ -1,9 +1,9 @@
 import type { NextPage } from 'next'
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Input } from 'src/components/ui/atoms/Input';
-import { Flex, HStack, Stack, Text, Box, Heading } from '@chakra-ui/layout';
+import { Flex, Stack, Center, Heading } from '@chakra-ui/layout';
 import { Button, useColorModeValue } from '@chakra-ui/react';
 import DashboardLogo from 'src/components/ui/atoms/DashboardLogo';
 import { useAuth } from 'src/contexts/AuthUserContext';
@@ -19,7 +19,7 @@ const signInFormSchema = yup.object().shape({
 })
 
 const ForgotPassword: NextPage = () => {
-  const { register, handleSubmit, formState } = useForm({
+  const { register, handleSubmit, formState } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema)
   });
   const { errors } = formState;
@@ -28,8 +28,8 @@ const ForgotPassword: NextPage = () => {
   const router = useRouter()
   const toast = useToast()
 
-  const handleSendPasswordResetEmail: SubmitHandler<SignInFormData> = async (values) => {
-    await sendPasswordResetEmail(values.email)
+  const handleSendPasswordResetEmail = (values: SignInFormData) => {
+    sendPasswordResetEmail(values.email)
       .then(() => {
         toast({
           title: 'Concluído',
@@ -70,9 +70,9 @@ const ForgotPassword: NextPage = () => {
         flexDir="column"
       >
         <Stack spacing="4">
-          <Box align='center' mb={4}>
+          <Center>
             <DashboardLogo />
-          </Box>
+          </Center>
           <Heading size='md'>Informe o e-mail cadastrado.</Heading>
           <Input
             type="email"

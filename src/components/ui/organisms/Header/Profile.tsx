@@ -51,12 +51,10 @@ export function Profile({ showProfileData = true }: ProfileProps) {
           <PopoverHeader>Perfil</PopoverHeader>
           <PopoverBody>
             <VStack alignItems="flex-start">
-              <Link href={"/profile/edit"}>
-                <Button variant="link">Editar</Button>
-              </Link>
-              <Link href={"/profile/change-pw"}>
-                <Button variant="link" >Alterar senha</Button>
-              </Link>
+
+              <Button variant="link" href={"/profile/edit"} as={Link}>Editar</Button>
+              <Button variant="link" href={"/profile/change-pw"} as={Link}>Alterar senha</Button>
+              
               <Divider />
               <Button variant="link" color="red.400" isLoading={loadingAuth} onClick={signOut}>
                 Sair

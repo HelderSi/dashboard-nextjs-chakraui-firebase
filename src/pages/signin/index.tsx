@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "src/components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Box, Center } from "@chakra-ui/layout";
 import { Button, useColorModeValue } from "@chakra-ui/react";
@@ -23,29 +23,29 @@ const signInFormSchema = yup.object().shape({
 
 const SignIn: NextPage = () => {
   const { signInWithEmailAndPassword } = useAuth();
-  const { register, handleSubmit, formState } = useForm({
+  const { register, handleSubmit, formState } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
   });
   const { errors } = formState;
   const router = useRouter()
   const toast = useToast()
 
-  const handleSignIn: SubmitHandler<SignInFormData> = async (values) => {
-    await signInWithEmailAndPassword(values.email, values.password)
-            .then( () => {
-              router.push('/')
-            }).catch( err => {
-              console.log(err.message)
-              toast({
-                title: 'Erro',
-                description: 'Ocorreu um erro ao logar',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-                position: 'top'
+  const handleSignIn =  (values: SignInFormData) => {
+    signInWithEmailAndPassword(values.email, values.password)
+      .then( () => {
+        router.push('/')
+      }).catch( err => {
+        console.log(err.message)
+        toast({
+          title: 'Erro',
+          description: 'Ocorreu um erro ao logar',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+          position: 'top'
 
-              })
-            })
+        })
+      })
   };
 
   return (
@@ -61,9 +61,9 @@ const SignIn: NextPage = () => {
         flexDir="column"
       >
         <Stack spacing="4">
-          <Box align="center" mb={4}>
+          <Center>
             <DashboardLogo />
-          </Box>
+          </Center>
           <Input
             type="email"
             label="E-mail"

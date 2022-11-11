@@ -1,5 +1,5 @@
 import { forwardRef, ForwardRefRenderFunction } from "react";
-import { FieldError } from "react-hook-form";
+import { FieldError, FieldErrorsImpl, Merge } from "react-hook-form";
 import {
   FormControl,
   FormLabel,
@@ -12,7 +12,7 @@ import {
 interface InputProps extends ChakraInputProps {
   name: string;
   label?: string;
-  error?: FieldError;
+  error?: FieldError | Merge<FieldError, FieldErrorsImpl<any>>;
 }
 
 const InputBase: ForwardRefRenderFunction<HTMLInputElement, InputProps> = (
