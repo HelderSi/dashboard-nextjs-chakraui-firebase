@@ -1,5 +1,19 @@
 # dashboard-nextjs-chakraui-firebase
 
+A template for a dashboard front-end fast starting.
+
+![alt text](screenshots/dash-main.png)
+![alt text](screenshots/dash-main-2.png)
+
+## Dependencies versions
+
+- NextJs v13
+- ReactJs v18
+- Firebase v9
+- Chakra UI v2
+
+## Setup
+
 First, config the environment on `.env.local` with your firebase configs:
 
 ```bash
@@ -28,11 +42,11 @@ yarn dev
 ## Screenshots
 
 ### Login
-![alt text](dash-login.png)
+![alt text](screenshots/dash-login.png)
 
 ### Main
-![alt text](dash-main.png)
+![alt text](screenshots/dash-main.png)
 
 ### Profile edit
-![alt text](dash-edit-profile.png)
-![alt text](dash-edit-profile-2.png)
+![alt text](screenshots/dash-edit-profile.png)
+![alt text](screenshots/dash-edit-profile-2.png)

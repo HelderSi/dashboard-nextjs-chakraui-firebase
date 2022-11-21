@@ -32,7 +32,6 @@ export function Sidebar() {
           <DrawerContent>
             <DrawerHeader><DashboardLogo /></DrawerHeader>
             <DrawerCloseButton size={'lg'} />
-
             <DrawerBody>
               <SidebarNav />
             </DrawerBody>

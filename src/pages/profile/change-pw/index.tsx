@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "src/components/ui/atoms/Input";
 import { Stack, Box } from "@chakra-ui/layout";
 import { useColorModeValue, useToast } from "@chakra-ui/react";
@@ -23,7 +23,7 @@ const formSchema = yup.object().shape({
 });
 
 const ChangePassword: NextPage = () => {
-  const { register, handleSubmit, formState, setValue, watch } = useForm({
+  const { register, handleSubmit, formState } = useForm<ProfileFormData>({
     resolver: yupResolver(formSchema),
   });
   const { errors } = formState;
@@ -32,8 +32,8 @@ const ChangePassword: NextPage = () => {
 
   const toast = useToast();
 
-  const handleUpdatePassword: SubmitHandler<ProfileFormData> = async (
-    values
+  const handleUpdatePassword = async (
+    values : ProfileFormData
   ) => {
     try {
       await updateCurrentUserPassword(values.oldPassword, values.newPassword);

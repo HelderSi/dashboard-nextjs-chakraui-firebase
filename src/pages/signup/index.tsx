@@ -1,11 +1,11 @@
 import type { NextPage } from "next";
 import NextLink from "next/link";
 
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "src/components/ui/atoms/Input";
-import { Flex, HStack, Stack, Text, Box, Heading } from "@chakra-ui/layout";
+import { Flex, HStack, Stack, Text, Center, Heading } from "@chakra-ui/layout";
 import { Button, useColorModeValue } from "@chakra-ui/react";
 import DashboardLogo from "src/components/ui/atoms/DashboardLogo";
 import { useAuth } from "src/contexts/AuthUserContext";
@@ -23,7 +23,7 @@ const signInFormSchema = yup.object().shape({
 });
 
 const SignUp: NextPage = () => {
-  const { register, handleSubmit, formState } = useForm({
+  const { register, handleSubmit, formState } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
   });
   const { errors } = formState;
@@ -32,8 +32,8 @@ const SignUp: NextPage = () => {
   const router = useRouter();
   const toast = useToast();
 
-  const handleSignUp: SubmitHandler<SignInFormData> = async (values) => {
-    await createUserWithEmailAndPassword(values.email, values.password)
+  const handleSignUp = (values: SignInFormData) => {
+    createUserWithEmailAndPassword(values.email, values.password)
       .then(() => {
         router.push("/");
       })
@@ -63,9 +63,9 @@ const SignUp: NextPage = () => {
         flexDir="column"
       >
         <Stack spacing="4">
-          <Box align="center" mb={4}>
+          <Center>
             <DashboardLogo />
-          </Box>
+          </Center>
           <Heading size="md">
             Vamos lá! o cadastro leva poucos segundos.
           </Heading>
@@ -75,7 +75,6 @@ const SignUp: NextPage = () => {
             error={errors.email}
             {...register("email")}
           />
-
           <Input
             type="password"
             label="Senha"
@@ -95,11 +94,16 @@ const SignUp: NextPage = () => {
         </Button>
         <HStack mt={4}>
           <Text>Você já tem uma conta?</Text>
-          <NextLink href={"/signin"} passHref>
-            <Button as={"a"} fontSize={"sm"} fontWeight={600} variant={"link"}>
-              Entrar
-            </Button>
-          </NextLink>
+          <Button 
+            variant="link" 
+            fontSize={"sm"} 
+            fontWeight={600} 
+            as={NextLink} 
+            href={"/signin"} 
+            passHref
+          >
+            Entrar
+          </Button>
         </HStack>
       </Flex>
     </Flex>
