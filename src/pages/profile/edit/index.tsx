@@ -101,8 +101,8 @@ const ProfileEdit: NextPage = () => {
                 pt="2"
                 maxW="500"
             >
-                <Box w="100%" py="4">
-                    <Heading mb={4} size='md'>Informações públicas</Heading>
+                <Box w="100%"  pt="6" pb="4">
+                    <Heading size='md'>Informações públicas</Heading>
                 </Box>
                 <Box p="8" boxShadow='xs' rounded='md' bgColor={cardBg}>
                     <Stack align="center">
@@ -134,8 +134,8 @@ const ProfileEdit: NextPage = () => {
                         </Button>
                     </Box>
                 </Box>
-                <Box w="100%" py="4">
-                    <Heading mb={4} size='md'>Configurações da conta</Heading>
+                <Box w="100%" pt="6" pb="4">
+                    <Heading size='md'>Configurações da conta</Heading>
                 </Box>
                 <Box p="8" boxShadow='xs' rounded='md' bgColor={cardBg}>
                     <Text fontSize='lg'>E-mail: {authUser?.email}</Text>
