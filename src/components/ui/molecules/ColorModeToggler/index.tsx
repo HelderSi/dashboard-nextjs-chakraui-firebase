@@ -1,4 +1,4 @@
-import { useColorMode, Icon, Switch, HStack } from '@chakra-ui/react'
+import { useColorMode, Icon, Switch, HStack, background } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/button';
 import { RiSunFill, RiMoonLine } from "react-icons/ri";
 
@@ -14,6 +14,7 @@ const ColorModeToggler = () => {
         onClick={() => setColorMode("light")} 
         as={RiSunFill} 
         color={ isDark ? "gray.400" : undefined}
+        _hover={{color: "gray.200"}}
       />
       <Switch 
         colorScheme='gray' 
@@ -26,6 +27,7 @@ const ColorModeToggler = () => {
         onClick={() => setColorMode("dark")} 
         as={RiMoonLine} 
         color={ !isDark ? "gray.300" : undefined}
+        _hover={{color: "gray.500"}}
       />
     </HStack>
   )
