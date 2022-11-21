@@ -1,6 +1,8 @@
 # dashboard-nextjs-chakraui-firebase
 
-A template for a dashboard front-end fast starting.
+A front-end dashboard template for fast starting.
+
+## Dark/Light Mode
 
 ![alt text](screenshots/dash-main.png)
 ![alt text](screenshots/dash-main-2.png)
