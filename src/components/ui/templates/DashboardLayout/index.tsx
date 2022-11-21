@@ -30,6 +30,10 @@ export default function DashboardLayout({ children }: Props) {
     </Center>
 
   if (PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
+  if(!authUser)
+    return <Center h="100vh">
+      <Spinner size='lg'/>
+    </Center>
   return (
     <Flex direction="row">
       <Sidebar />
