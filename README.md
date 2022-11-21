@@ -3,6 +3,7 @@
 A template for a dashboard front-end fast starting.
 
 ![alt text](screenshots/dash-main.png)
+![alt text](screenshots/dash-main-2.png)
 
 ## Dependencies versions
 

@@ -1,5 +1,4 @@
-import { useColorMode, Icon, Switch, HStack, background } from '@chakra-ui/react'
-import { Button } from '@chakra-ui/button';
+import { useColorMode, Icon, Switch, HStack } from '@chakra-ui/react'
 import { RiSunFill, RiMoonLine } from "react-icons/ri";
 
 const ColorModeToggler = () => {
