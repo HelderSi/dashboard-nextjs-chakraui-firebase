@@ -13,6 +13,7 @@ A front-end dashboard template for fast starting.
 - ReactJs v18
 - Firebase v9
 - Chakra UI v2
+- React Hook Form v7
 
 ## Setup
 
