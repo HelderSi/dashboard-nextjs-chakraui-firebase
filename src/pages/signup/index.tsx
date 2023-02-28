@@ -6,11 +6,12 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "src/components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Center, Heading } from "@chakra-ui/layout";
-import { Button, useColorModeValue } from "@chakra-ui/react";
+import { Button, useColorModeValue, Divider } from "@chakra-ui/react";
 import DashboardLogo from "src/components/ui/atoms/DashboardLogo";
 import { useAuth } from "src/contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/toast";
+import { FaFacebook, FaTwitter, FaGoogle, FaGithub } from 'react-icons/fa'
 
 type SignInFormData = {
   email: string;
@@ -69,6 +70,27 @@ const SignUp: NextPage = () => {
           <Heading size="md">
             Vamos lá! o cadastro leva poucos segundos.
           </Heading>
+          <Stack>
+            <Button colorScheme='gray' leftIcon={<FaGoogle />}>
+              Google
+            </Button>
+            <Button colorScheme='facebook' leftIcon={<FaFacebook />}>
+              Facebook
+            </Button>
+            <Button colorScheme='twitter' leftIcon={<FaTwitter />}>
+              Twitter
+            </Button>
+            <Button bg='black' color='white' _hover={{ bg: 'gray.800' }} leftIcon={<FaGithub />}>
+              Github
+            </Button>
+          </Stack>
+          <HStack pv={8}>
+            <Divider />
+            <Heading size="sm">
+              ou
+            </Heading>
+            <Divider />
+          </HStack>
           <Input
             type="email"
             label="E-mail"
@@ -94,19 +116,19 @@ const SignUp: NextPage = () => {
         </Button>
         <HStack mt={4}>
           <Text>Você já tem uma conta?</Text>
-          <Button 
-            variant="link" 
-            fontSize={"sm"} 
-            fontWeight={600} 
-            as={NextLink} 
-            href={"/signin"} 
+          <Button
+            variant="link"
+            fontSize={"sm"}
+            fontWeight={600}
+            as={NextLink}
+            href={"/signin"}
             passHref
           >
             Entrar
           </Button>
         </HStack>
       </Flex>
-    </Flex>
+    </Flex >
   );
 };
 
