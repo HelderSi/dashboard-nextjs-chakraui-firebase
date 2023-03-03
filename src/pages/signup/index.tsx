@@ -12,6 +12,7 @@ import { useAuth } from "src/contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/toast";
 import { FaFacebook, FaTwitter, FaGoogle, FaGithub } from 'react-icons/fa'
+import { AuthProviderIds } from "../../services/firebase/auth";
 
 type SignInFormData = {
   email: string;
@@ -29,7 +30,7 @@ const SignUp: NextPage = () => {
   });
   const { errors } = formState;
 
-  const { createUserWithEmailAndPassword } = useAuth();
+  const { createUserWithEmailAndPassword, signInWithSocialLogin } = useAuth();
   const router = useRouter();
   const toast = useToast();
 
@@ -51,6 +52,10 @@ const SignUp: NextPage = () => {
       });
   };
 
+  const handleSignInWithSocialLogin = (providerId: AuthProviderIds) => () => {
+    signInWithSocialLogin(providerId)
+  }
+
   return (
     <Flex w="100vw" h="100vh" align="center" justify="center">
       <Flex
@@ -71,7 +76,7 @@ const SignUp: NextPage = () => {
             Vamos lá! o cadastro leva poucos segundos.
           </Heading>
           <Stack>
-            <Button colorScheme='gray' leftIcon={<FaGoogle />}>
+            <Button colorScheme='gray' leftIcon={<FaGoogle />} onClick={handleSignInWithSocialLogin(AuthProviderIds.GOOGLE)}>
               Google
             </Button>
             <Button colorScheme='facebook' leftIcon={<FaFacebook />}>

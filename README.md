@@ -2,6 +2,14 @@
 
 A front-end dashboard template for fast starting.
 
+## Features
+
+- Social Login
+  - Google
+  - Facebook
+  - Twitter
+  - Github
+
 ## Dark/Light Mode
 
 ![alt text](screenshots/dash-main.png)
@@ -29,6 +37,7 @@ NEXT_PUBLIC_FIREBASE_APP_ID=
 ```
 
 install dependencies:
+
 ```bash
 npm install
 # or
@@ -36,6 +45,7 @@ yarn
 ```
 
 Then, run it:
+
 ```bash
 npm run dev
 # or
@@ -45,11 +55,14 @@ yarn dev
 ## Screenshots
 
 ### Login
+
 ![alt text](screenshots/dash-login.png)
 
 ### Main
+
 ![alt text](screenshots/dash-main.png)
 
 ### Profile edit
+
 ![alt text](screenshots/dash-edit-profile.png)
 ![alt text](screenshots/dash-edit-profile-2.png)

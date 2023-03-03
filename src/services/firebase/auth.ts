@@ -24,6 +24,13 @@ const auth = getAuth();
 auth.useDeviceLanguage();
 const googleAuthProvider = new GoogleAuthProvider();
 
+export enum AuthProviderIds {
+    GOOGLE = 'google.com',
+    FACEBOOK = 'facebook',
+    TWITTER = 'twitter',
+    GITHUB = 'github',
+}
+
 export default {
     getAuth: () => auth,
     getCurrentUser: () => auth.currentUser,
@@ -33,14 +40,29 @@ export default {
 
     getRedirectResult: () => getRedirectResult(auth)
         .then((result) => {
-            // This gives you a Google Access Token. You can use it to access Google APIs.
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            const token = credential.accessToken;
+            if (!result) return null;
 
-            // The signed-in user info.
-            const user = result.user;
-            // IdP data available using getAdditionalUserInfo(result)
-            // ...
+            console.log(result)
+            const { providerId } = result
+
+            switch (providerId as AuthProviderIds) {
+                case AuthProviderIds.GOOGLE:
+                    // This gives you a Google Access Token. You can use it to access Google APIs.
+                    const credential = GoogleAuthProvider.credentialFromResult(result);
+                    if (!credential) return null;
+                    const token = credential.accessToken;
+                    // The signed-in user info.
+                    return result.user;
+                case AuthProviderIds.FACEBOOK:
+                    return null;
+                case AuthProviderIds.TWITTER:
+                    return null;
+                case AuthProviderIds.GITHUB:
+                    return null;
+                default:
+                    return null;
+            }
+
         }).catch((error) => {
             // Handle Errors here.
             const errorCode = error.code;
