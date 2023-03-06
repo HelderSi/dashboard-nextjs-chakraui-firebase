@@ -12,7 +12,10 @@ import { useAuth } from "src/contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/toast";
 import { FaFacebook, FaTwitter, FaGoogle, FaGithub } from 'react-icons/fa'
-import { AuthProviderIds } from "../../services/firebase/auth";
+import { auth, AuthProviderIds } from "../../services/firebase/auth";
+import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
+import { FacebookAuthProvider, GoogleAuthProvider } from "firebase/auth";
+
 
 type SignInFormData = {
   email: string;
@@ -77,17 +80,33 @@ const SignUp: NextPage = () => {
           </Heading>
           <Stack>
             <Button colorScheme='gray' leftIcon={<FaGoogle />} onClick={handleSignInWithSocialLogin(AuthProviderIds.GOOGLE)}>
-              Google
+              Fazer login com o Google
             </Button>
             <Button colorScheme='facebook' leftIcon={<FaFacebook />}>
-              Facebook
+              Fazer login com o Facebook
             </Button>
             <Button colorScheme='twitter' leftIcon={<FaTwitter />}>
-              Twitter
+              Fazer login com o Twitter
             </Button>
             <Button bg='black' color='white' _hover={{ bg: 'gray.800' }} leftIcon={<FaGithub />}>
-              Github
+              Fazer login com o Github
             </Button>
+          </Stack>
+
+          <Stack m={10}>
+            <StyledFirebaseAuth
+              uiConfig={
+                {
+                  signInSuccessUrl: '/',
+                  // We will display Google and Facebook as auth providers.
+                  signInOptions: [
+                    GoogleAuthProvider.PROVIDER_ID,
+                    FacebookAuthProvider.PROVIDER_ID
+                  ],
+                }
+              }
+              firebaseAuth={auth}
+            />
           </Stack>
           <HStack pv={8}>
             <Divider />

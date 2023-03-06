@@ -20,7 +20,7 @@ import {
 import init from './init'
 
 init()
-const auth = getAuth();
+export const auth = getAuth();
 auth.useDeviceLanguage();
 const googleAuthProvider = new GoogleAuthProvider();
 
