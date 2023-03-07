@@ -47,22 +47,10 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const router = useRouter();
 
   useEffect(() => {
-    auth.getRedirectResult().then(authState => {
-      if (authState) {
-        setAuthUser({
-          uid: authState.uid,
-          email: authState.email || "",
-          displayName: authState.displayName || "",
-          photoURL: authState.photoURL || "",
-          emailVerified: !!authState.emailVerified
-        })
-        setLoading(false)
-        router.push('/')
-      }
-    })
     const unsubscribe = auth.onAuthStateChanged(
       auth.getAuth(),
       (authState) => {
+        console.log(authState)
         if (!authState) {
           setAuthUser(null)
           setLoading(false)
@@ -75,6 +63,9 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
           photoURL: authState.photoURL || "",
           emailVerified: !!authState.emailVerified
         })
+        console.log(router)
+        if (router.asPath === '/signup' || router.asPath === '/signin')
+          router.push('/')
         setLoading(false)
       }
     );

@@ -11,10 +11,8 @@ import DashboardLogo from "src/components/ui/atoms/DashboardLogo";
 import { useAuth } from "src/contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/toast";
-import { FaFacebook, FaTwitter, FaGoogle, FaGithub } from 'react-icons/fa'
-import { auth, AuthProviderIds } from "../../services/firebase/auth";
-import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
-import { FacebookAuthProvider, GoogleAuthProvider } from "firebase/auth";
+import { SocialLogin } from "src/components/ui/organisms/SocialLogin";
+import { TextDivider } from "src/components/ui/atoms/TextDivider";
 
 
 type SignInFormData = {
@@ -55,9 +53,6 @@ const SignUp: NextPage = () => {
       });
   };
 
-  const handleSignInWithSocialLogin = (providerId: AuthProviderIds) => () => {
-    signInWithSocialLogin(providerId)
-  }
 
   return (
     <Flex w="100vw" h="100vh" align="center" justify="center">
@@ -78,43 +73,11 @@ const SignUp: NextPage = () => {
           <Heading size="md">
             Vamos lá! o cadastro leva poucos segundos.
           </Heading>
-          <Stack>
-            <Button colorScheme='gray' leftIcon={<FaGoogle />} onClick={handleSignInWithSocialLogin(AuthProviderIds.GOOGLE)}>
-              Fazer login com o Google
-            </Button>
-            <Button colorScheme='facebook' leftIcon={<FaFacebook />}>
-              Fazer login com o Facebook
-            </Button>
-            <Button colorScheme='twitter' leftIcon={<FaTwitter />}>
-              Fazer login com o Twitter
-            </Button>
-            <Button bg='black' color='white' _hover={{ bg: 'gray.800' }} leftIcon={<FaGithub />}>
-              Fazer login com o Github
-            </Button>
-          </Stack>
 
-          <Stack m={10}>
-            <StyledFirebaseAuth
-              uiConfig={
-                {
-                  signInSuccessUrl: '/',
-                  // We will display Google and Facebook as auth providers.
-                  signInOptions: [
-                    GoogleAuthProvider.PROVIDER_ID,
-                    FacebookAuthProvider.PROVIDER_ID
-                  ],
-                }
-              }
-              firebaseAuth={auth}
-            />
-          </Stack>
-          <HStack pv={8}>
-            <Divider />
-            <Heading size="sm">
-              ou
-            </Heading>
-            <Divider />
-          </HStack>
+          <SocialLogin />
+
+          <TextDivider text="ou" />
+
           <Input
             type="email"
             label="E-mail"

@@ -21,7 +21,8 @@ import init from './init'
 
 init()
 export const auth = getAuth();
-auth.useDeviceLanguage();
+
+auth.useDeviceLanguage()
 const googleAuthProvider = new GoogleAuthProvider();
 
 export enum AuthProviderIds {

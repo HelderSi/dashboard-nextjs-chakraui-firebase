@@ -10,6 +10,8 @@ import { useAuth } from "src/contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/react";
 import ColorModeToggler from "src/components/ui/molecules/ColorModeToggler";
+import { SocialLogin } from "src/components/ui/organisms/SocialLogin";
+import { TextDivider } from "src/components/ui/atoms/TextDivider";
 
 type SignInFormData = {
   email: string;
@@ -30,11 +32,11 @@ const SignIn: NextPage = () => {
   const router = useRouter()
   const toast = useToast()
 
-  const handleSignIn =  (values: SignInFormData) => {
+  const handleSignIn = (values: SignInFormData) => {
     signInWithEmailAndPassword(values.email, values.password)
-      .then( () => {
+      .then(() => {
         router.push('/')
-      }).catch( err => {
+      }).catch(err => {
         console.log(err.message)
         toast({
           title: 'Erro',
@@ -55,7 +57,7 @@ const SignIn: NextPage = () => {
         onSubmit={handleSubmit(handleSignIn)}
         width="100%"
         maxWidth={360}
-        bg={useColorModeValue("gray.50","gray.700")}
+        bg={useColorModeValue("gray.50", "gray.700")}
         p="8"
         borderRadius={8}
         flexDir="column"
@@ -64,6 +66,8 @@ const SignIn: NextPage = () => {
           <Center>
             <DashboardLogo />
           </Center>
+          <SocialLogin />
+          <TextDivider text="ou" />
           <Input
             type="email"
             label="E-mail"
@@ -108,13 +112,13 @@ const SignIn: NextPage = () => {
             href={"/signup"}
           >
             Cadastre-se
-          </Button> 
+          </Button>
         </HStack>
         <Center mt='6'>
           <ColorModeToggler />
         </Center>
       </Flex>
-     
+
     </Flex>
   );
 };
