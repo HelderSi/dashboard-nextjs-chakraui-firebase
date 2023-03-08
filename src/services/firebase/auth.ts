@@ -10,12 +10,15 @@ import {
     reauthenticateWithCredential,
     updateProfile,
     UserProfile,
-    AuthCredential,
     User,
     EmailAuthProvider,
     GoogleAuthProvider,
+    FacebookAuthProvider,
+    GithubAuthProvider,
+    TwitterAuthProvider,
     signInWithRedirect,
-    getRedirectResult
+    getRedirectResult,
+    ProviderId
 } from 'firebase/auth';
 import init from './init'
 
@@ -24,13 +27,9 @@ export const auth = getAuth();
 
 auth.useDeviceLanguage()
 const googleAuthProvider = new GoogleAuthProvider();
+const facebookAuthProvider = new FacebookAuthProvider();
 
-export enum AuthProviderIds {
-    GOOGLE = 'google.com',
-    FACEBOOK = 'facebook',
-    TWITTER = 'twitter',
-    GITHUB = 'github',
-}
+export const AuthProviderIds = ProviderId
 
 export default {
     getAuth: () => auth,
@@ -38,41 +37,31 @@ export default {
     signInWithEmailAndPassword: (email: string, password: string) => signInWithEmailAndPassword(auth, email, password),
 
     signInWithGoogle: () => signInWithRedirect(auth, googleAuthProvider),
+    signInWithFacebook: () => signInWithRedirect(auth, facebookAuthProvider),
 
     getRedirectResult: () => getRedirectResult(auth)
         .then((result) => {
-            if (!result) return null;
-
-            console.log(result)
+            if (!result?.providerId) return null;
             const { providerId } = result
-
-            switch (providerId as AuthProviderIds) {
-                case AuthProviderIds.GOOGLE:
-                    // This gives you a Google Access Token. You can use it to access Google APIs.
-                    const credential = GoogleAuthProvider.credentialFromResult(result);
-                    if (!credential) return null;
-                    const token = credential.accessToken;
-                    // The signed-in user info.
-                    return result.user;
-                case AuthProviderIds.FACEBOOK:
-                    return null;
-                case AuthProviderIds.TWITTER:
-                    return null;
-                case AuthProviderIds.GITHUB:
-                    return null;
-                default:
-                    return null;
-            }
-
+            const provider = {
+                [AuthProviderIds.GOOGLE]: GoogleAuthProvider,
+                [AuthProviderIds.FACEBOOK]: FacebookAuthProvider,
+                [AuthProviderIds.GITHUB]: GithubAuthProvider,
+                [AuthProviderIds.TWITTER]: TwitterAuthProvider,
+            }[providerId]
+            if (!provider) return null;
+            // This gives you a Google Access Token. You can use it to access Google APIs.
+            const credential = provider.credentialFromResult(result);
+            if (!credential) return null;
+            const token = credential.accessToken;
+            // The signed-in user info.
+            return result.user;
         }).catch((error) => {
             // Handle Errors here.
             const errorCode = error.code;
             const errorMessage = error.message;
             // The email of the user's account used.
             const email = error.customData.email;
-            // The AuthCredential type that was used.
-            const credential = GoogleAuthProvider.credentialFromError(error);
-            // ...
         }),
 
     createUserWithEmailAndPassword: (email: string, password: string) => createUserWithEmailAndPassword(auth, email, password),

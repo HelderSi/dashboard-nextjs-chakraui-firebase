@@ -81,7 +81,12 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
 
   const signInWithSocialLogin = useCallback(
     async (privider: AuthProviderIds) => {
-      await auth.signInWithGoogle();
+      switch (privider) {
+        case AuthProviderIds.GOOGLE:
+          await auth.signInWithGoogle();
+        case AuthProviderIds.FACEBOOK:
+          await auth.signInWithFacebook();
+      }
     },
     []
   );

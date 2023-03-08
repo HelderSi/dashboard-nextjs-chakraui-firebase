@@ -17,7 +17,7 @@ export function SocialLogin() {
     <Button colorScheme='gray' leftIcon={<FaGoogle />} onClick={handleSignInWithSocialLogin(AuthProviderIds.GOOGLE)}>
       Fazer login com o Google
     </Button>
-    <Button colorScheme='facebook' leftIcon={<FaFacebook />}>
+    <Button colorScheme='facebook' leftIcon={<FaFacebook />} onClick={handleSignInWithSocialLogin(AuthProviderIds.FACEBOOK)}>
       Fazer login com o Facebook
     </Button>
     <Button colorScheme='twitter' leftIcon={<FaTwitter />}>
