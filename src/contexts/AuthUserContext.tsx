@@ -10,7 +10,7 @@ import {
 import { useRouter } from "next/router";
 
 import { auth } from "src/services/firebase";
-import { AuthProviderIds } from "../services/firebase/auth";
+import { SocialLoginProviders, SocialLoginProviderIds } from "../services/firebase/auth";
 
 type UserType = {
   uid: string;
@@ -69,6 +69,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         setLoading(false)
       }
     );
+    auth.getRedirectResult()
     return () => unsubscribe();
   }, []);
 
@@ -80,12 +81,18 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   );
 
   const signInWithSocialLogin = useCallback(
-    async (privider: AuthProviderIds) => {
-      switch (privider) {
-        case AuthProviderIds.GOOGLE:
+    async (provider: SocialLoginProviderIds) => {
+      switch (provider) {
+        case SocialLoginProviders.GOOGLE:
           await auth.signInWithGoogle();
-        case AuthProviderIds.FACEBOOK:
+        case SocialLoginProviders.FACEBOOK:
           await auth.signInWithFacebook();
+        case SocialLoginProviders.GITHUB:
+          await auth.signInWithGithub();
+        case SocialLoginProviders.TWITTER:
+          await auth.signInWithTwitter();
+        case SocialLoginProviders.APPLE:
+          await auth.signInWithApple();
       }
     },
     []
