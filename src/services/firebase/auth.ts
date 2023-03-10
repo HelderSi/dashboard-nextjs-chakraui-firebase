@@ -1,3 +1,4 @@
+import { FirebaseError } from 'firebase/app';
 import {
     getAuth,
     createUserWithEmailAndPassword,
@@ -21,6 +22,8 @@ import {
     ProviderId,
     OAuthProvider,
     fetchSignInMethodsForEmail,
+    linkWithCredential,
+    AuthErrorCodes,
 } from 'firebase/auth';
 import init from './init'
 
@@ -94,15 +97,22 @@ export default {
             if (!credential) return null;
             const token = credential.accessToken;
             // The signed-in user info.
-            return result.user;
-        }).catch((error) => {
+            const user = result.user;
+            const pendingCredential = sessionStorage.getItem(`fb:auth:${user.email}`);
+            console.log('pendingCredential', pendingCredential)
+            pendingCredential && linkWithCredential(user, OAuthProvider.credentialFromJSON(pendingCredential))
+            return user;
+        }).catch((error: FirebaseError) => {
             // Handle Errors here.
-            if (error.code === 'auth/account-exists-with-different-credential') {
+            if (error.code === AuthErrorCodes.NEED_CONFIRMATION) { // "auth/account-exists-with-different-credential"
                 // User's email already exists.
                 // The pending credential.
-                const pendingCredential = error.credential;
+                const pendingCredential = OAuthProvider.credentialFromError(error);;
+
                 // The provider account's email address.
-                const email = error.customData.email;
+                const email = error.customData?.email as string;
+                // save pending credention on sessionStorage
+                sessionStorage.setItem(`fb:auth:${email}`, JSON.stringify(pendingCredential));
                 console.log(email)
                 // Get sign-in methods for this email.
                 fetchSignInMethodsForEmail(auth, email).then(methods => {
@@ -128,7 +138,6 @@ export default {
                     const provider = getProviderForProviderId(methods[0] as SocialLoginProviderIds);
                     console.log(provider)
                     signInWithRedirect(auth, provider)
-
                 }).catch(console.log)
 
 
