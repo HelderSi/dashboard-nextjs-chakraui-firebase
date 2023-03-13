@@ -4,13 +4,12 @@ import {
   useCallback,
   ReactNode,
   createContext,
-
   useContext,
 } from "react";
 import { useRouter } from "next/router";
 
-import { auth } from "src/services/firebase";
-import { SocialLoginProviders, SocialLoginProviderIds } from "../services/firebase/auth";
+import { auth } from "../services/firebase";
+import { OauthProviders, OauthProviderIds } from "../services/firebase/auth";
 
 type UserType = {
   uid: string;
@@ -20,12 +19,50 @@ type UserType = {
   emailVerified: boolean
 }
 
+export const SocialLoginProviderIds = OauthProviders
+
+export type SocialLoginProvider = {
+  id: OauthProviderIds;
+  name: string;
+  enabled: boolean;
+}
+
+export const SocialLoginProviders: {
+  [id in OauthProviderIds]: SocialLoginProvider
+} = {
+  [OauthProviders.GOOGLE]: {
+    enabled: true,
+    id: OauthProviders.GOOGLE,
+    name: "Google"
+  },
+  [OauthProviders.FACEBOOK]: {
+    enabled: true,
+    id: OauthProviders.FACEBOOK,
+    name: "Facebook"
+  },
+  [OauthProviders.GITHUB]: {
+    enabled: true,
+    id: OauthProviders.GITHUB,
+    name: "Github"
+  },
+  [OauthProviders.TWITTER]: {
+    enabled: true,
+    id: OauthProviders.TWITTER,
+    name: "Twitter"
+  },
+  [OauthProviders.APPLE]: {
+    enabled: true,
+    id: OauthProviders.APPLE,
+    name: "Apple"
+  },
+}
+
 type UserEditableInfoType = Partial<Omit<UserType, 'uid' | 'email' | 'emailVerified'>>
 
 type ContextValueType = {
   authUser: UserType | null;
   loading: boolean;
-  signInWithSocialLogin(provider: AuthProviderIds): Promise<void>;
+  signInWithSocialLogin(provider: SocialLoginProvider): Promise<void>;
   signInWithEmailAndPassword(email: string, password: string): Promise<void>;
   createUserWithEmailAndPassword(email: string, password: string): Promise<void>;
   sendPasswordResetEmail(email: string): Promise<void>;
@@ -81,19 +118,8 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   );
 
   const signInWithSocialLogin = useCallback(
-    async (provider: SocialLoginProviderIds) => {
-      switch (provider) {
-        case SocialLoginProviders.GOOGLE:
-          await auth.signInWithGoogle();
-        case SocialLoginProviders.FACEBOOK:
-          await auth.signInWithFacebook();
-        case SocialLoginProviders.GITHUB:
-          await auth.signInWithGithub();
-        case SocialLoginProviders.TWITTER:
-          await auth.signInWithTwitter();
-        case SocialLoginProviders.APPLE:
-          await auth.signInWithApple();
-      }
+    async (provider: SocialLoginProvider) => {
+      auth.signInWithOauthProvider(provider.id)
     },
     []
   );
@@ -127,7 +153,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       await auth.sendEmailVerification(currentUser)
   }, [])
 
-  const updateCurrentUserPassword = useCallback(async (oldPassword, newPassword) => {
+  const updateCurrentUserPassword = useCallback(async (oldPassword: string, newPassword: string) => {
     await auth.reauthenticateCurrentUser(oldPassword)
     await auth.updateCurrentUserPassword(newPassword)
   }, [])

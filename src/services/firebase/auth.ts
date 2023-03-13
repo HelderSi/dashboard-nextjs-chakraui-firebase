@@ -25,6 +25,7 @@ import {
     linkWithCredential,
     AuthErrorCodes,
 } from 'firebase/auth';
+import { ValueOf } from '../../utils/types/ValueOf';
 import init from './init'
 
 init()
@@ -41,37 +42,34 @@ const appleAuthProvider = new OAuthProvider(APPLE_PROVIDER_ID);
 
 const { PASSWORD, PHONE, ...restProvidersId } = ProviderId;
 
-export const SocialLoginProviders =
+export const OauthProviders =
 {
     ...restProvidersId,
     APPLE: APPLE_PROVIDER_ID,
 }
 
-const socialLoginProvidersClassMapper =
+const OauthProvidersClassMapper =
 {
-    [SocialLoginProviders.GOOGLE]: GoogleAuthProvider,
-    [SocialLoginProviders.FACEBOOK]: FacebookAuthProvider,
-    [SocialLoginProviders.GITHUB]: GithubAuthProvider,
-    [SocialLoginProviders.TWITTER]: TwitterAuthProvider,
+    [OauthProviders.GOOGLE]: GoogleAuthProvider,
+    [OauthProviders.FACEBOOK]: FacebookAuthProvider,
+    [OauthProviders.GITHUB]: GithubAuthProvider,
+    [OauthProviders.TWITTER]: TwitterAuthProvider,
     [APPLE_PROVIDER_ID]: OAuthProvider,
 }
 
-const socialLoginProvidersInstanceMapper =
+const OauthProvidersInstanceMapper =
 {
-    [SocialLoginProviders.GOOGLE]: googleAuthProvider,
-    [SocialLoginProviders.FACEBOOK]: facebookAuthProvider,
-    [SocialLoginProviders.GITHUB]: githubAuthProvider,
-    [SocialLoginProviders.TWITTER]: twitterAuthProvider,
+    [OauthProviders.GOOGLE]: googleAuthProvider,
+    [OauthProviders.FACEBOOK]: facebookAuthProvider,
+    [OauthProviders.GITHUB]: githubAuthProvider,
+    [OauthProviders.TWITTER]: twitterAuthProvider,
     [APPLE_PROVIDER_ID]: appleAuthProvider,
-
 }
 
-type ValueOf<T> = T[keyof T]; // Indexed Access Types
-export type SocialLoginProviderIds = ValueOf<typeof SocialLoginProviders>
+export type OauthProviderIds = ValueOf<typeof OauthProviders>
 
-
-const getProviderForProviderId = (id: SocialLoginProviderIds) => {
-    return socialLoginProvidersInstanceMapper[id]
+const getProviderForProviderId = (id: OauthProviderIds) => {
+    return OauthProvidersInstanceMapper[id]
 }
 
 export default {
@@ -85,12 +83,14 @@ export default {
     signInWithTwitter: () => signInWithRedirect(auth, twitterAuthProvider),
     signInWithApple: () => signInWithRedirect(auth, appleAuthProvider),
 
+    signInWithOauthProvider: (providerId: OauthProviderIds) => signInWithRedirect(auth, OauthProvidersInstanceMapper[providerId]),
+
     getRedirectResult: () => getRedirectResult(auth)
         .then((result) => {
             console.log(result)
             if (!result?.providerId) return null;
             const { providerId } = result
-            const provider = socialLoginProvidersClassMapper[providerId as SocialLoginProviderIds]
+            const provider = OauthProvidersClassMapper[providerId as OauthProviderIds]
             if (!provider) return null;
             // This gives you a Google Access Token. You can use it to access Google APIs.
             const credential = provider.credentialFromResult(result);
@@ -135,7 +135,7 @@ export default {
 
                     // All the other cases are external providers.
                     // Construct provider object for that provider.
-                    const provider = getProviderForProviderId(methods[0] as SocialLoginProviderIds);
+                    const provider = getProviderForProviderId(methods[0] as OauthProviderIds);
                     console.log(provider)
                     signInWithRedirect(auth, provider)
                 }).catch(console.log)
