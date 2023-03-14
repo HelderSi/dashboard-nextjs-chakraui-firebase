@@ -8,7 +8,9 @@ import {
 } from "react";
 import { useRouter } from "next/router";
 
+import { authConfig } from "../configs/auth";
 import { auth } from "../services/firebase";
+
 import { OauthProviders, OauthProviderIds } from "../services/firebase/auth";
 
 type UserType = {
@@ -27,31 +29,33 @@ export type SocialLoginProvider = {
   enabled: boolean;
 }
 
+
+
 export const SocialLoginProviders: {
   [id in OauthProviderIds]: SocialLoginProvider
 } = {
   [OauthProviders.GOOGLE]: {
-    enabled: true,
+    enabled: authConfig.social.providers.google.enabled,
     id: OauthProviders.GOOGLE,
     name: "Google"
   },
   [OauthProviders.FACEBOOK]: {
-    enabled: true,
+    enabled: authConfig.social.providers.facebook.enabled,
     id: OauthProviders.FACEBOOK,
     name: "Facebook"
   },
   [OauthProviders.GITHUB]: {
-    enabled: true,
+    enabled: authConfig.social.providers.github.enabled,
     id: OauthProviders.GITHUB,
     name: "Github"
   },
   [OauthProviders.TWITTER]: {
-    enabled: true,
+    enabled: authConfig.social.providers.twitter.enabled,
     id: OauthProviders.TWITTER,
     name: "Twitter"
   },
   [OauthProviders.APPLE]: {
-    enabled: true,
+    enabled: authConfig.social.providers.apple.enabled,
     id: OauthProviders.APPLE,
     name: "Apple"
   },
@@ -70,6 +74,7 @@ type ContextValueType = {
   updateCurrentUserProfile(profile: UserEditableInfoType): Promise<void>;
   updateCurrentUserPassword(oldPassword: string, newPassword: string): Promise<void>;
   sendEmailVerification(): Promise<void>;
+  getAvailableMethods(): typeof authConfig;
 };
 
 const authUserContext = createContext({} as ContextValueType);
@@ -158,6 +163,10 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     await auth.updateCurrentUserPassword(newPassword)
   }, [])
 
+  const getAvailableMethods = useCallback(() => {
+    return authConfig
+  }, [])
+
   return (
     <authUserContext.Provider value={{
       authUser,
@@ -169,7 +178,8 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       sendPasswordResetEmail,
       updateCurrentUserProfile,
       updateCurrentUserPassword,
-      sendEmailVerification
+      sendEmailVerification,
+      getAvailableMethods
     }}>
       {children}
     </authUserContext.Provider>

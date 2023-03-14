@@ -6,7 +6,7 @@ import { Input } from "src/components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Box, Center } from "@chakra-ui/layout";
 import { Button, useColorModeValue } from "@chakra-ui/react";
 import DashboardLogo from "src/components/ui/atoms/DashboardLogo";
-import { useAuth } from "src/contexts/AuthUserContext";
+import { useAuth } from "../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/react";
 import ColorModeToggler from "src/components/ui/molecules/ColorModeToggler";
@@ -24,13 +24,14 @@ const signInFormSchema = yup.object().shape({
 });
 
 const SignIn: NextPage = () => {
-  const { signInWithEmailAndPassword } = useAuth();
+  const { signInWithEmailAndPassword, getAvailableMethods } = useAuth();
   const { register, handleSubmit, formState } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
   });
   const { errors } = formState;
   const router = useRouter()
   const toast = useToast()
+  const authMethods = getAvailableMethods()
 
   const handleSignIn = (values: SignInFormData) => {
     signInWithEmailAndPassword(values.email, values.password)
@@ -66,8 +67,12 @@ const SignIn: NextPage = () => {
           <Center>
             <DashboardLogo />
           </Center>
-          <SocialLogin />
-          <TextDivider text="ou" />
+          {authMethods.social.enabled &&
+            <>
+              <SocialLogin />
+              <TextDivider text="ou" />
+            </>}
+
           <Input
             type="email"
             label="E-mail"
@@ -75,12 +80,13 @@ const SignIn: NextPage = () => {
             {...register("email")}
           />
 
-          <Input
-            type="password"
-            label="Senha"
-            error={errors.password}
-            {...register("password")}
-          />
+          {authMethods.email.withoutPassword ||
+            <Input
+              type="password"
+              label="Senha"
+              error={errors.password}
+              {...register("password")}
+            />}
         </Stack>
         <Button
           alignSelf="flex-end"
@@ -118,7 +124,6 @@ const SignIn: NextPage = () => {
           <ColorModeToggler />
         </Center>
       </Flex>
-
     </Flex>
   );
 };

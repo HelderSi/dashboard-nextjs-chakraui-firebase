@@ -8,7 +8,7 @@ import { Input } from "src/components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Center, Heading } from "@chakra-ui/layout";
 import { Button, useColorModeValue, Divider } from "@chakra-ui/react";
 import DashboardLogo from "src/components/ui/atoms/DashboardLogo";
-import { useAuth } from "src/contexts/AuthUserContext";
+import { useAuth } from "../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/toast";
 import { SocialLogin } from "src/components/ui/organisms/SocialLogin";
@@ -31,9 +31,10 @@ const SignUp: NextPage = () => {
   });
   const { errors } = formState;
 
-  const { createUserWithEmailAndPassword, signInWithSocialLogin } = useAuth();
+  const { createUserWithEmailAndPassword, getAvailableMethods } = useAuth();
   const router = useRouter();
   const toast = useToast();
+  const authMethods = getAvailableMethods()
 
   const handleSignUp = (values: SignInFormData) => {
     createUserWithEmailAndPassword(values.email, values.password)
@@ -74,9 +75,11 @@ const SignUp: NextPage = () => {
             Vamos lá! o cadastro leva poucos segundos.
           </Heading>
 
-          <SocialLogin />
-
-          <TextDivider text="ou" />
+          {authMethods.social.enabled &&
+            <>
+              <SocialLogin />
+              <TextDivider text="ou" />
+            </>}
 
           <Input
             type="email"
@@ -84,12 +87,12 @@ const SignUp: NextPage = () => {
             error={errors.email}
             {...register("email")}
           />
-          <Input
+          {authMethods.email.withoutPassword || <Input
             type="password"
             label="Senha"
             error={errors.password}
             {...register("password")}
-          />
+          />}
         </Stack>
         {/* <Text>Sua senha deve ter no mínimo 6 caracteres</Text> */}
         <Button
