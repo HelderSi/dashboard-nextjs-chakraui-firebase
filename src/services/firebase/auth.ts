@@ -24,6 +24,8 @@ import {
     fetchSignInMethodsForEmail,
     linkWithCredential,
     AuthErrorCodes,
+    sendSignInLinkToEmail,
+
 } from 'firebase/auth';
 import { ValueOf } from '../../utils/types/ValueOf';
 import init from './init'
@@ -85,22 +87,25 @@ export default {
 
     signInWithOauthProvider: (providerId: OauthProviderIds) => signInWithRedirect(auth, OauthProvidersInstanceMapper[providerId]),
 
-    getRedirectResult: () => getRedirectResult(auth)
+    getOauthRedirectResult: () => getRedirectResult(auth)
         .then((result) => {
             console.log(result)
             if (!result?.providerId) return null;
             const { providerId } = result
             const provider = OauthProvidersClassMapper[providerId as OauthProviderIds]
+
             if (!provider) return null;
-            // This gives you a Google Access Token. You can use it to access Google APIs.
+            // This gives you a Access Token
             const credential = provider.credentialFromResult(result);
             if (!credential) return null;
             const token = credential.accessToken;
             // The signed-in user info.
             const user = result.user;
-            const pendingCredential = sessionStorage.getItem(`fb:auth:${user.email}`);
+            const pendingCredential = sessionStorage.getItem(`oauth:${user.email}`);
             console.log('pendingCredential', pendingCredential)
-            pendingCredential && linkWithCredential(user, OAuthProvider.credentialFromJSON(pendingCredential))
+            pendingCredential && linkWithCredential(user, OAuthProvider.credentialFromJSON(pendingCredential)).catch(err => {
+                console.log(JSON.stringify(err)) // TODO: handle Error (auth/provider-already-linked).
+            })
             return user;
         }).catch((error: FirebaseError) => {
             // Handle Errors here.
@@ -112,7 +117,7 @@ export default {
                 // The provider account's email address.
                 const email = error.customData?.email as string;
                 // save pending credention on sessionStorage
-                sessionStorage.setItem(`fb:auth:${email}`, JSON.stringify(pendingCredential));
+                sessionStorage.setItem(`oauth:${email}`, JSON.stringify(pendingCredential));
                 console.log(email)
                 // Get sign-in methods for this email.
                 fetchSignInMethodsForEmail(auth, email).then(methods => {
@@ -130,23 +135,38 @@ export default {
                         //     // GitHub account successfully linked to the existing Firebase user.
                         //     goToApp();
                         // });
-                        return;
+                        return 'ASK_PASSWORD';
                     }
 
                     // All the other cases are external providers.
                     // Construct provider object for that provider.
                     const provider = getProviderForProviderId(methods[0] as OauthProviderIds);
+                    // At this point, you should let the user know that they already have an account
+                    // but with a different provider, and let them validate the fact they want to
+                    // sign in with this provider.
+                    // Sign in to provider.
                     console.log(provider)
                     signInWithRedirect(auth, provider)
                 }).catch(console.log)
-
-
             }
             const errorMessage = error.message;
             // The email of the user's account used.
             console.log(error)
+            return 'ERROR'
         }),
 
+    sendSignInLinkToEmail: (email: string) => sendSignInLinkToEmail(auth, email, {
+        url: 'http://localhost:3000/loginwithlink',
+        handleCodeInApp: true,
+    }).then(() => {
+        // The link was successfully sent. Inform the user.
+        // Save the email locally so you don't need to ask the user for it again
+        // if they open the link on the same device.
+        window.localStorage.setItem('emailForSignIn', email);
+    }).catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+    }),
     createUserWithEmailAndPassword: (email: string, password: string) => createUserWithEmailAndPassword(auth, email, password),
     onAuthStateChanged,
     sendPasswordResetEmail: (email: string) => sendPasswordResetEmail(auth, email),

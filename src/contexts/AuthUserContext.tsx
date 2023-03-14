@@ -111,7 +111,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         setLoading(false)
       }
     );
-    auth.getRedirectResult()
+    auth.getOauthRedirectResult()
     return () => unsubscribe();
   }, []);
 
