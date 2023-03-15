@@ -29,8 +29,6 @@ export type SocialLoginProvider = {
   enabled: boolean;
 }
 
-
-
 export const SocialLoginProviders: {
   [id in OauthProviderIds]: SocialLoginProvider
 } = {
@@ -68,6 +66,8 @@ type ContextValueType = {
   loading: boolean;
   signInWithSocialLogin(provider: SocialLoginProvider): Promise<void>;
   signInWithEmailAndPassword(email: string, password: string): Promise<void>;
+  sendSignInLinkToEmail(email: string): Promise<void>;
+  signInWithEmailLink(): Promise<void>;
   createUserWithEmailAndPassword(email: string, password: string): Promise<void>;
   sendPasswordResetEmail(email: string): Promise<void>;
   signOut(): Promise<void>;
@@ -136,6 +136,20 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     []
   );
 
+  const signInWithEmailLink = useCallback(
+    async () => {
+      await auth.signInWithEmailLink();
+    },
+    []
+  );
+
+  const sendSignInLinkToEmail = useCallback(
+    async (email: string) => {
+      await auth.sendSignInLinkToEmail(email);
+    },
+    []
+  );
+
   const sendPasswordResetEmail = useCallback(
     async (email: string) => {
       await auth.sendPasswordResetEmail(email);
@@ -173,6 +187,8 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       loading,
       signInWithSocialLogin,
       signInWithEmailAndPassword,
+      sendSignInLinkToEmail,
+      signInWithEmailLink,
       createUserWithEmailAndPassword,
       signOut,
       sendPasswordResetEmail,

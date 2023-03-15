@@ -17,11 +17,13 @@ const PUBLIC_ROUTES = [
 
 export default function DashboardLayout({ children }: Props) {
   const { authUser, loading: loadingAuth } = useAuth()
-  const { asPath, push } = useRouter()
+  const { asPath, push, query, route } = useRouter()
   const bg = useColorModeValue('gray.50', 'gray.800')
 
+  console.log(useRouter())
+
   useEffect(() => {
-    if (!loadingAuth && !authUser && !PUBLIC_ROUTES.includes(asPath)) push('/signin')
+    if (!loadingAuth && !authUser && !PUBLIC_ROUTES.includes(asPath)) push(`/signin`)
   }, [loadingAuth, asPath, authUser, push])
 
   if (loadingAuth)
@@ -30,9 +32,9 @@ export default function DashboardLayout({ children }: Props) {
     </Center>
 
   if (PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
-  if(!authUser)
+  if (!authUser)
     return <Center h="100vh">
-      <Spinner size='lg'/>
+      <Spinner size='lg' />
     </Center>
   return (
     <Flex direction="row">

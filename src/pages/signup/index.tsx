@@ -13,7 +13,7 @@ import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/toast";
 import { SocialLogin } from "src/components/ui/organisms/SocialLogin";
 import { TextDivider } from "src/components/ui/atoms/TextDivider";
-
+import { authConfig } from "../../configs/auth";
 
 type SignInFormData = {
   email: string;
@@ -31,10 +31,9 @@ const SignUp: NextPage = () => {
   });
   const { errors } = formState;
 
-  const { createUserWithEmailAndPassword, getAvailableMethods } = useAuth();
+  const { createUserWithEmailAndPassword } = useAuth();
   const router = useRouter();
   const toast = useToast();
-  const authMethods = getAvailableMethods()
 
   const handleSignUp = (values: SignInFormData) => {
     createUserWithEmailAndPassword(values.email, values.password)
@@ -75,7 +74,7 @@ const SignUp: NextPage = () => {
             Vamos lá! o cadastro leva poucos segundos.
           </Heading>
 
-          {authMethods.social.enabled &&
+          {authConfig.social.enabled &&
             <>
               <SocialLogin />
               <TextDivider text="ou" />
@@ -87,7 +86,7 @@ const SignUp: NextPage = () => {
             error={errors.email}
             {...register("email")}
           />
-          {authMethods.email.withoutPassword || <Input
+          {authConfig.email.withoutPassword || <Input
             type="password"
             label="Senha"
             error={errors.password}

@@ -12,6 +12,8 @@ import { useToast } from "@chakra-ui/react";
 import ColorModeToggler from "src/components/ui/molecules/ColorModeToggler";
 import { SocialLogin } from "src/components/ui/organisms/SocialLogin";
 import { TextDivider } from "src/components/ui/atoms/TextDivider";
+import { authConfig } from "../../configs/auth";
+import { useEffect } from "react";
 
 type SignInFormData = {
   email: string;
@@ -20,20 +22,27 @@ type SignInFormData = {
 
 const signInFormSchema = yup.object().shape({
   email: yup.string().required("E-mail obrigatório.").email("E-mail inválido."),
-  password: yup.string().required("Senha obrigatória."),
+  password: authConfig.email.withoutPassword ? yup.string().optional() : yup.string().required("Senha obrigatória."),
 });
 
 const SignIn: NextPage = () => {
-  const { signInWithEmailAndPassword, getAvailableMethods } = useAuth();
+  const { signInWithEmailAndPassword, sendSignInLinkToEmail, signInWithEmailLink } = useAuth();
   const { register, handleSubmit, formState } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
   });
   const { errors } = formState;
   const router = useRouter()
   const toast = useToast()
-  const authMethods = getAvailableMethods()
+
+  useEffect(() => {
+    signInWithEmailLink()
+  }, [signInWithEmailLink])
 
   const handleSignIn = (values: SignInFormData) => {
+    if (authConfig.email.withoutPassword) {
+      sendSignInLinkToEmail(values.email);
+      return;
+    }
     signInWithEmailAndPassword(values.email, values.password)
       .then(() => {
         router.push('/')
@@ -67,7 +76,7 @@ const SignIn: NextPage = () => {
           <Center>
             <DashboardLogo />
           </Center>
-          {authMethods.social.enabled &&
+          {authConfig.social.enabled &&
             <>
               <SocialLogin />
               <TextDivider text="ou" />
@@ -80,7 +89,7 @@ const SignIn: NextPage = () => {
             {...register("email")}
           />
 
-          {authMethods.email.withoutPassword ||
+          {authConfig.email.withoutPassword ||
             <Input
               type="password"
               label="Senha"
