@@ -31,11 +31,15 @@ const SignUp: NextPage = () => {
   });
   const { errors } = formState;
 
-  const { createUserWithEmailAndPassword } = useAuth();
+  const { createUserWithEmailAndPassword, sendSignInLinkToEmail } = useAuth();
   const router = useRouter();
   const toast = useToast();
 
   const handleSignUp = (values: SignInFormData) => {
+    if (authConfig.email.withoutPassword) {
+      sendSignInLinkToEmail(values.email);
+      return;
+    }
     createUserWithEmailAndPassword(values.email, values.password)
       .then(() => {
         router.push("/");

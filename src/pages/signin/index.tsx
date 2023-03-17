@@ -34,13 +34,19 @@ const SignIn: NextPage = () => {
   const router = useRouter()
   const toast = useToast()
 
-  useEffect(() => {
-    signInWithEmailLink()
-  }, [signInWithEmailLink])
-
   const handleSignIn = (values: SignInFormData) => {
     if (authConfig.email.withoutPassword) {
-      sendSignInLinkToEmail(values.email);
+      sendSignInLinkToEmail(values.email).catch(err => {
+        toast({
+          title: 'Erro',
+          description: 'Ocorreu um erro ao logar',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+          position: 'top'
+
+        })
+      });
       return;
     }
     signInWithEmailAndPassword(values.email, values.password)
@@ -55,7 +61,6 @@ const SignIn: NextPage = () => {
           duration: 3000,
           isClosable: true,
           position: 'top'
-
         })
       })
   };

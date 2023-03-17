@@ -75,6 +75,7 @@ type ContextValueType = {
   updateCurrentUserPassword(oldPassword: string, newPassword: string): Promise<void>;
   sendEmailVerification(): Promise<void>;
   getAvailableMethods(): typeof authConfig;
+  isSignInWithEmailLink(): boolean;
 };
 
 const authUserContext = createContext({} as ContextValueType);
@@ -106,7 +107,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
           emailVerified: !!authState.emailVerified
         })
         console.log(router)
-        if (router.asPath === '/signup' || router.asPath === '/signin')
+        if (router.route === '/signup' || router.route === '/signin')
           router.push('/')
         setLoading(false)
       }
@@ -157,6 +158,10 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     []
   );
 
+  const isSignInWithEmailLink = useCallback(() => {
+    return auth.isSignInWithEmailLink()
+  }, [])
+
   const signOut = useCallback(async () => await auth.signOut(), []);
 
   const updateCurrentUserProfile = useCallback(async (changedProfileInfo: UserEditableInfoType) => {
@@ -195,7 +200,8 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       updateCurrentUserProfile,
       updateCurrentUserPassword,
       sendEmailVerification,
-      getAvailableMethods
+      getAvailableMethods,
+      isSignInWithEmailLink
     }}>
       {children}
     </authUserContext.Provider>

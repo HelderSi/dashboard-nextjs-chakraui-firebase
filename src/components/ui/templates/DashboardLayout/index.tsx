@@ -2,7 +2,7 @@ import { useEffect, ReactNode } from "react";
 import { Center, Flex, Spinner, useColorModeValue } from "@chakra-ui/react";
 import { Header } from "src/components/ui/organisms/Header";
 import { Sidebar } from "src/components/ui/organisms/Sidebar";
-import { useAuth } from "src/contexts/AuthUserContext";
+import { useAuth } from "../../../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
 
 interface Props {
@@ -16,15 +16,18 @@ const PUBLIC_ROUTES = [
 ]
 
 export default function DashboardLayout({ children }: Props) {
-  const { authUser, loading: loadingAuth } = useAuth()
+  const { authUser, loading: loadingAuth, isSignInWithEmailLink, signInWithEmailLink } = useAuth()
   const { asPath, push, query, route } = useRouter()
   const bg = useColorModeValue('gray.50', 'gray.800')
 
   console.log(useRouter())
 
   useEffect(() => {
-    if (!loadingAuth && !authUser && !PUBLIC_ROUTES.includes(asPath)) push(`/signin`)
-  }, [loadingAuth, asPath, authUser, push])
+    if (!loadingAuth && !authUser && !PUBLIC_ROUTES.includes(route)) push(`/signin`)
+    if (!authUser && isSignInWithEmailLink()) {
+      signInWithEmailLink()
+    }
+  }, [loadingAuth, route, authUser, push, isSignInWithEmailLink, signInWithEmailLink])
 
   if (loadingAuth)
     return <Center h="100vh">

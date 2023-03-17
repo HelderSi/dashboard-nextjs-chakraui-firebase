@@ -75,6 +75,33 @@ const getProviderForProviderId = (id: OauthProviderIds) => {
     return OauthProvidersInstanceMapper[id]
 }
 
+const GENERIC_ERROR_CODE = "auth/generic-error";
+const NOT_A_LOGIN_LINK_ERROR_CODE = "auth/not-a-login-link"
+type AuthError = {
+    message: string;
+    code: string;
+}
+const AuthErrorMapper: {
+    [code: string]: AuthError
+} = {
+    [AuthErrorCodes.QUOTA_EXCEEDED]: {
+        message: "Quota diária excedida",
+        code: AuthErrorCodes.QUOTA_EXCEEDED
+    },
+    [AuthErrorCodes.NEED_CONFIRMATION]: { // "auth/account-exists-with-different-credential"
+        message: "O email informado já existe",
+        code: AuthErrorCodes.NEED_CONFIRMATION
+    },
+    [GENERIC_ERROR_CODE]: {
+        message: "Um erro não identificado ocorreu",
+        code: GENERIC_ERROR_CODE
+    },
+    [NOT_A_LOGIN_LINK_ERROR_CODE]: {
+        code: NOT_A_LOGIN_LINK_ERROR_CODE,
+        message: "Link de login inválido"
+    }
+}
+
 export default {
     getAuth: () => auth,
     getCurrentUser: () => auth.currentUser,
@@ -155,7 +182,7 @@ export default {
             console.log(error)
             return 'ERROR'
         }),
-
+    isSignInWithEmailLink: () => isSignInWithEmailLink(auth, window.location.href),
     sendSignInLinkToEmail: (email: string) => sendSignInLinkToEmail(auth, email, {
         url: 'http://localhost:3000/signin',
         handleCodeInApp: true,
@@ -163,24 +190,26 @@ export default {
         // The link was successfully sent. Inform the user.
         // Save the email locally so you don't need to ask the user for it again
         // if they open the link on the same device.
-        window.localStorage.setItem('emailForSignIn', email);
-    }).catch((error) => {
-        console.log(error)
-        const errorCode = error.code;
-        const errorMessage = error.message;
+        localStorage.setItem('emailForSignIn', email);
+    }).catch((error: FirebaseError) => {
+        if (AuthErrorMapper[error.code]) {
+            return AuthErrorMapper[error.code]
+        }
+        console.log(error.code)
+        return AuthErrorMapper[GENERIC_ERROR_CODE]
     }),
     signInWithEmailLink: () => {
-        if (isSignInWithEmailLink(auth, window.location.href)) {
+        if (isSignInWithEmailLink(auth, location.href)) {
             // Additional state parameters can also be passed via URL.
             // This can be used to continue the user's intended action before triggering
             // the sign-in operation.
             // Get the email if available. This should be available if the user completes
             // the flow on the same device where they started it.
-            let email = window.localStorage.getItem('emailForSignIn');
+            let email = localStorage.getItem('emailForSignIn');
             if (!email) {
                 // User opened the link on a different device. To prevent session fixation
                 // attacks, ask the user to provide the associated email again. For example:
-                email = window.prompt('Please provide your email for confirmation');
+                email = prompt('Por favor, confirme seu email:');
             }
             // The client SDK will parse the code from the link for you.
             email && signInWithEmailLink(auth, email, window.location.href)
@@ -198,7 +227,8 @@ export default {
                     // Common errors could be invalid email and invalid or expired OTPs.
                     console.log(error)
                 });
-
+        } else {
+            return AuthErrorMapper[NOT_A_LOGIN_LINK_ERROR_CODE]
         }
     },
     createUserWithEmailAndPassword: (email: string, password: string) => createUserWithEmailAndPassword(auth, email, password),
