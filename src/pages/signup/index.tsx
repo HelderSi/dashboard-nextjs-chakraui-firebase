@@ -4,15 +4,15 @@ import NextLink from "next/link";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Input } from "src/components/ui/atoms/Input";
+import { Input } from "components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Center, Heading } from "@chakra-ui/layout";
-import { Button, useColorModeValue, Divider } from "@chakra-ui/react";
-import DashboardLogo from "src/components/ui/atoms/DashboardLogo";
+import { Button, useColorModeValue } from "@chakra-ui/react";
+import DashboardLogo from "components/ui/atoms/DashboardLogo";
 import { useAuth } from "../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/toast";
-import { SocialLogin } from "src/components/ui/organisms/SocialLogin";
-import { TextDivider } from "src/components/ui/atoms/TextDivider";
+import { SocialLogin } from "components/ui/organisms/SocialLogin";
+import { TextDivider } from "components/ui/atoms/TextDivider";
 import { authConfig } from "../../configs/auth";
 
 type SignInFormData = {

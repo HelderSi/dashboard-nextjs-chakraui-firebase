@@ -102,6 +102,14 @@ const AuthErrorMapper: {
     }
 }
 
+type ResponseType = 'success' | 'error';
+
+type Response = {
+    type: ResponseType;
+    error?: AuthError;
+    success: boolean;
+}
+
 export default {
     getAuth: () => auth,
     getCurrentUser: () => auth.currentUser,
@@ -115,17 +123,17 @@ export default {
 
     signInWithOauthProvider: (providerId: OauthProviderIds) => signInWithRedirect(auth, OauthProvidersInstanceMapper[providerId]),
 
-    getOauthRedirectResult: () => getRedirectResult(auth)
+    getOauthRedirectResult: (): Promise<Response> => getRedirectResult(auth)
         .then((result) => {
             console.log(result)
-            if (!result?.providerId) return null;
+            if (!result?.providerId) throw new Error("");
             const { providerId } = result
             const provider = OauthProvidersClassMapper[providerId as OauthProviderIds]
 
-            if (!provider) return null;
+            if (!provider) throw new Error("");
             // This gives you a Access Token
             const credential = provider.credentialFromResult(result);
-            if (!credential) return null;
+            if (!credential) throw new Error("");
             const token = credential.accessToken;
             // The signed-in user info.
             const user = result.user;
@@ -134,7 +142,12 @@ export default {
             pendingCredential && linkWithCredential(user, OAuthProvider.credentialFromJSON(pendingCredential)).catch(err => {
                 console.log(JSON.stringify(err)) // TODO: handle Error (auth/provider-already-linked).
             })
-            return user;
+
+            const response: Response = {
+                success: true,
+                type: 'success'
+            }
+            return response;
         }).catch((error: FirebaseError) => {
             // Handle Errors here.
             if (error.code === AuthErrorCodes.NEED_CONFIRMATION) { // "auth/account-exists-with-different-credential"
@@ -163,7 +176,10 @@ export default {
                         //     // GitHub account successfully linked to the existing Firebase user.
                         //     goToApp();
                         // });
-                        return 'ASK_PASSWORD';
+                        return {
+                            type: 'error',
+                            success: false
+                        };
                     }
 
                     // All the other cases are external providers.
@@ -180,10 +196,13 @@ export default {
             const errorMessage = error.message;
             // The email of the user's account used.
             console.log(error)
-            return 'ERROR'
+            return {
+                type: 'error',
+                success: false
+            }
         }),
     isSignInWithEmailLink: () => isSignInWithEmailLink(auth, window.location.href),
-    sendSignInLinkToEmail: (email: string) => sendSignInLinkToEmail(auth, email, {
+    sendSignInLinkToEmail: (email: string): Promise<Response> => sendSignInLinkToEmail(auth, email, {
         url: 'http://localhost:3000/signin',
         handleCodeInApp: true,
     }).then(() => {
@@ -191,12 +210,23 @@ export default {
         // Save the email locally so you don't need to ask the user for it again
         // if they open the link on the same device.
         localStorage.setItem('emailForSignIn', email);
+        const response: Response = {
+            success: true,
+            type: 'success'
+        }
+        return response;
     }).catch((error: FirebaseError) => {
         if (AuthErrorMapper[error.code]) {
-            return AuthErrorMapper[error.code]
+            return {
+                error: AuthErrorMapper[error.code],
+                type: "error"
+            }
         }
         console.log(error.code)
-        return AuthErrorMapper[GENERIC_ERROR_CODE]
+        return {
+            error: AuthErrorMapper[GENERIC_ERROR_CODE],
+            type: "error"
+        }
     }),
     signInWithEmailLink: () => {
         if (isSignInWithEmailLink(auth, location.href)) {
