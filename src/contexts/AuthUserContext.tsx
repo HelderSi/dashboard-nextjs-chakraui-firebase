@@ -66,7 +66,7 @@ type ContextValueType = {
   loading: boolean;
   signInWithSocialLogin(provider: SocialLoginProvider): Promise<void>;
   signInWithEmailAndPassword(email: string, password: string): Promise<void>;
-  sendSignInLinkToEmail(email: string): Promise<void>;
+  sendSignInLinkToEmail(email: string): Promise<boolean>;
   signInWithEmailLink(): Promise<void>;
   createUserWithEmailAndPassword(email: string, password: string): Promise<void>;
   sendPasswordResetEmail(email: string): Promise<void>;
@@ -146,7 +146,8 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
 
   const sendSignInLinkToEmail = useCallback(
     async (email: string) => {
-      await auth.sendSignInLinkToEmail(email);
+      const result = await auth.sendSignInLinkToEmail(email);
+      return result.success
     },
     []
   );

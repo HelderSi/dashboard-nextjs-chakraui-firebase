@@ -34,7 +34,7 @@ const SignIn: NextPage = () => {
   const router = useRouter()
   const toast = useToast()
 
-  const handleSignIn = (values: SignInFormData) => {
+  const handleSignIn = async (values: SignInFormData) => {
     if (authConfig.email.withoutPassword) {
       sendSignInLinkToEmail(values.email).catch(err => {
         toast({
@@ -46,7 +46,15 @@ const SignIn: NextPage = () => {
           position: 'top'
 
         })
-      });
+      })
+      toast({
+        title: 'Link enviado',
+        description: 'Acesse seu email e clique no link para logar.',
+        status: 'success',
+        duration: null,
+        isClosable: true,
+        position: 'top'
+      })
       return;
     }
     signInWithEmailAndPassword(values.email, values.password)

@@ -216,50 +216,77 @@ export default {
         }
         return response;
     }).catch((error: FirebaseError) => {
+        console.log(error.code)
+
         if (AuthErrorMapper[error.code]) {
             return {
                 error: AuthErrorMapper[error.code],
-                type: "error"
+                type: "error",
+                success: false
             }
         }
-        console.log(error.code)
         return {
             error: AuthErrorMapper[GENERIC_ERROR_CODE],
-            type: "error"
+            type: "error",
+            success: false
         }
     }),
-    signInWithEmailLink: () => {
-        if (isSignInWithEmailLink(auth, location.href)) {
-            // Additional state parameters can also be passed via URL.
-            // This can be used to continue the user's intended action before triggering
-            // the sign-in operation.
-            // Get the email if available. This should be available if the user completes
-            // the flow on the same device where they started it.
-            let email = localStorage.getItem('emailForSignIn');
-            if (!email) {
-                // User opened the link on a different device. To prevent session fixation
-                // attacks, ask the user to provide the associated email again. For example:
-                email = prompt('Por favor, confirme seu email:');
+    signInWithEmailLink: async (): Promise<Response> => {
+        try {
+            if (isSignInWithEmailLink(auth, location.href)) {
+                // Additional state parameters can also be passed via URL.
+                // This can be used to continue the user's intended action before triggering
+                // the sign-in operation.
+                // Get the email if available. This should be available if the user completes
+                // the flow on the same device where they started it.
+                let email = localStorage.getItem('emailForSignIn');
+                if (!email) {
+                    // User opened the link on a different device. To prevent session fixation
+                    // attacks, ask the user to provide the associated email again. For example:
+                    email = prompt('Por favor, confirme seu email:');
+                }
+                if (!email) throw new Error("")
+                // The client SDK will parse the code from the link for you.
+                const result = await signInWithEmailLink(auth, email, window.location.href)
+                // Clear email from storage.
+                window.localStorage.removeItem('emailForSignIn');
+                // You can access the new user via result.use 
+                // Additional user info profile not available via:
+                // result.additionalUserInfo.profile == null
+                // You can check if the user is new or existing:
+                // result.additionalUserInfo.isNewUser
+                const response: Response = {
+                    success: true,
+                    type: 'success'
+                }
+                return response;
+
+            } else {
+                const response: Response = {
+                    type: 'error',
+                    error: AuthErrorMapper[NOT_A_LOGIN_LINK_ERROR_CODE],
+                    success: false
+                }
+                return response;
             }
-            // The client SDK will parse the code from the link for you.
-            email && signInWithEmailLink(auth, email, window.location.href)
-                .then((result) => {
-                    // Clear email from storage.
-                    window.localStorage.removeItem('emailForSignIn');
-                    // You can access the new user via result.user
-                    // Additional user info profile not available via:
-                    // result.additionalUserInfo.profile == null
-                    // You can check if the user is new or existing:
-                    // result.additionalUserInfo.isNewUser
-                })
-                .catch((error) => {
-                    // Some error occurred, you can inspect the code: error.code
-                    // Common errors could be invalid email and invalid or expired OTPs.
-                    console.log(error)
-                });
-        } else {
-            return AuthErrorMapper[NOT_A_LOGIN_LINK_ERROR_CODE]
+        } catch (error) {
+            if (error instanceof FirebaseError) {
+                console.log(error.code)
+                if (AuthErrorMapper[error.code]) {
+                    return {
+                        error: AuthErrorMapper[error.code],
+                        type: "error",
+                        success: false
+                    }
+                }
+            }
+            return {
+                error: AuthErrorMapper[GENERIC_ERROR_CODE],
+                type: "error",
+                success: false
+            }
         }
+
     },
     createUserWithEmailAndPassword: (email: string, password: string) => createUserWithEmailAndPassword(auth, email, password),
     onAuthStateChanged,
