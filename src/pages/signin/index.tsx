@@ -2,18 +2,17 @@ import type { NextPage } from "next";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Input } from "src/components/ui/atoms/Input";
-import { Flex, HStack, Stack, Text, Box, Center } from "@chakra-ui/layout";
+import { Input } from "components/ui/atoms/Input";
+import { Flex, HStack, Stack, Text, Center } from "@chakra-ui/layout";
 import { Button, useColorModeValue } from "@chakra-ui/react";
-import DashboardLogo from "src/components/ui/atoms/DashboardLogo";
+import DashboardLogo from "components/ui/atoms/DashboardLogo";
 import { useAuth } from "../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
 import { useToast } from "@chakra-ui/react";
-import ColorModeToggler from "src/components/ui/molecules/ColorModeToggler";
-import { SocialLogin } from "src/components/ui/organisms/SocialLogin";
-import { TextDivider } from "src/components/ui/atoms/TextDivider";
+import ColorModeToggler from "components/ui/molecules/ColorModeToggler";
+import { SocialLogin } from "components/ui/organisms/SocialLogin";
+import { TextDivider } from "components/ui/atoms/TextDivider";
 import { authConfig } from "../../configs/auth";
-import { useEffect } from "react";
 
 type SignInFormData = {
   email: string;
@@ -110,17 +109,19 @@ const SignIn: NextPage = () => {
               {...register("password")}
             />}
         </Stack>
-        <Button
-          alignSelf="flex-end"
-          mt={2}
-          as={"a"}
-          fontSize={"sm"}
-          fontWeight={600}
-          variant={"link"}
-          href={"/forgot-pw"}
-        >
-          Esqueceu sua senha?
-        </Button>
+        {authConfig.email.withoutPassword ||
+          <Button
+            alignSelf="flex-end"
+            mt={2}
+            as={"a"}
+            fontSize={"sm"}
+            fontWeight={600}
+            variant={"link"}
+            href={"/forgot-pw"}
+          >
+            Esqueceu sua senha?
+          </Button>}
+
         <Button
           type="submit"
           mt="4"

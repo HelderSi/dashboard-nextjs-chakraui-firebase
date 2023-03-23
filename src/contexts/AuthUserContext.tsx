@@ -6,12 +6,17 @@ import {
   createContext,
   useContext,
 } from "react";
+import NextLink from "next/link";
+
 import { useRouter } from "next/router";
 
 import { authConfig } from "../configs/auth";
 import { auth } from "../services/firebase";
 
-import { OauthProviders, OauthProviderIds } from "../services/firebase/auth";
+import { OauthProviders, OauthProviderIds, AuthErrorCodes } from "../services/firebase/auth";
+import { Button, Highlight, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text } from "@chakra-ui/react";
+import { Input } from "components/ui/atoms/Input";
+import { PasswordLogin } from "components/ui/organisms/PasswordLogin";
 
 type UserType = {
   uid: string;
@@ -87,33 +92,44 @@ interface AuthUserProviderProps {
 export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const [authUser, setAuthUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
+  const [passwordRequiredForEmail, setPasswordRequiredForEmail] = useState<string>()
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(
       auth.getAuth(),
-      (authState) => {
-        console.log(authState)
-        if (!authState) {
+      (user) => {
+        if (!user) {
           setAuthUser(null)
           setLoading(false)
           return;
         }
         setAuthUser({
-          uid: authState.uid,
-          email: authState.email || "",
-          displayName: authState.displayName || "",
-          photoURL: authState.photoURL || "",
-          emailVerified: !!authState.emailVerified
+          uid: user.uid,
+          email: user.email || "",
+          displayName: user.displayName || "",
+          photoURL: user.photoURL || "",
+          emailVerified: !!user.emailVerified
         })
-        console.log(router)
+        auth.linkPendingCredential(user)
         if (router.route === '/signup' || router.route === '/signin')
           router.push('/')
         setLoading(false)
       }
     );
-    auth.getOauthRedirectResult()
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    auth.getOauthRedirectResult(
+      (credential) => {
+
+      },
+      (error) => {
+        if (error.code === AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD) {
+          setPasswordRequiredForEmail(error.email)
+        }
+      })
   }, []);
 
   const signInWithEmailAndPassword = useCallback(
@@ -204,7 +220,19 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       getAvailableMethods,
       isSignInWithEmailLink
     }}>
-      {children}
+      <>
+        {children}
+        <Modal isOpen={!!passwordRequiredForEmail} onClose={() => setPasswordRequiredForEmail(undefined)}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Digite sua senha</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <PasswordLogin initialValues={{ email: passwordRequiredForEmail }} />
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      </>
     </authUserContext.Provider>
   );
 }

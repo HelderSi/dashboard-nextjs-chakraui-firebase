@@ -8,7 +8,7 @@ import {
   DrawerBody,
   VStack,
 } from '@chakra-ui/react';
-import { useSidebarDrawer } from 'src/contexts/SidebarDrawerContext';
+import { useSidebarDrawer } from 'contexts/SidebarDrawerContext';
 import DashboardLogo from '../../atoms/DashboardLogo';
 import { SidebarNav } from './SidebarNav';
 

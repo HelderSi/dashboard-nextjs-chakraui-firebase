@@ -1,7 +1,7 @@
 import { useEffect, ReactNode } from "react";
 import { Center, Flex, Spinner, useColorModeValue } from "@chakra-ui/react";
-import { Header } from "src/components/ui/organisms/Header";
-import { Sidebar } from "src/components/ui/organisms/Sidebar";
+import { Header } from "components/ui/organisms/Header";
+import { Sidebar } from "components/ui/organisms/Sidebar";
 import { useAuth } from "../../../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
 
@@ -17,10 +17,12 @@ const PUBLIC_ROUTES = [
 
 export default function DashboardLayout({ children }: Props) {
   const { authUser, loading: loadingAuth, isSignInWithEmailLink, signInWithEmailLink } = useAuth()
-  const { asPath, push, query, route } = useRouter()
+  const { push, query, route } = useRouter()
   const bg = useColorModeValue('gray.50', 'gray.800')
+  console.log(route)
+  console.log(authUser)
+  console.log(query)
 
-  console.log(useRouter())
 
   useEffect(() => {
     if (!loadingAuth && !authUser && !PUBLIC_ROUTES.includes(route)) push(`/signin`)
@@ -34,7 +36,7 @@ export default function DashboardLayout({ children }: Props) {
       <Spinner size='lg' />
     </Center>
 
-  if (PUBLIC_ROUTES.includes(asPath)) return <>{children}</>
+  if (PUBLIC_ROUTES.includes(route)) return <>{children}</>
   if (!authUser)
     return <Center h="100vh">
       <Spinner size='lg' />

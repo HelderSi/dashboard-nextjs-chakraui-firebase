@@ -23,10 +23,11 @@ import {
     OAuthProvider,
     fetchSignInMethodsForEmail,
     linkWithCredential,
-    AuthErrorCodes,
+    AuthErrorCodes as FirebaseAuthErrorCodes,
     sendSignInLinkToEmail,
     signInWithEmailLink,
-    isSignInWithEmailLink
+    isSignInWithEmailLink,
+    UserCredential
 } from 'firebase/auth';
 import { ValueOf } from '../../utils/types/ValueOf';
 import init from './init'
@@ -75,30 +76,40 @@ const getProviderForProviderId = (id: OauthProviderIds) => {
     return OauthProvidersInstanceMapper[id]
 }
 
-const GENERIC_ERROR_CODE = "auth/generic-error";
-const NOT_A_LOGIN_LINK_ERROR_CODE = "auth/not-a-login-link"
+export const AuthErrorCodes = {
+    ...FirebaseAuthErrorCodes,
+    GENERIC_ERROR_CODE: "auth/generic-error" as "auth/generic-error",
+    NOT_A_LOGIN_LINK_ERROR_CODE: "auth/not-a-login-link" as "auth/not-a-login-link",
+    REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD: "auth/required-sign-in-with-email-and-password" as "auth/required-sign-in-with-email-and-password"
+}
+
 type AuthError = {
     message: string;
     code: string;
+    email?: string;
 }
 const AuthErrorMapper: {
     [code: string]: AuthError
 } = {
     [AuthErrorCodes.QUOTA_EXCEEDED]: {
         message: "Quota diária excedida",
-        code: AuthErrorCodes.QUOTA_EXCEEDED
+        code: AuthErrorCodes.QUOTA_EXCEEDED,
     },
     [AuthErrorCodes.NEED_CONFIRMATION]: { // "auth/account-exists-with-different-credential"
         message: "O email informado já existe",
         code: AuthErrorCodes.NEED_CONFIRMATION
     },
-    [GENERIC_ERROR_CODE]: {
+    [AuthErrorCodes.GENERIC_ERROR_CODE]: {
         message: "Um erro não identificado ocorreu",
-        code: GENERIC_ERROR_CODE
+        code: AuthErrorCodes.GENERIC_ERROR_CODE
     },
-    [NOT_A_LOGIN_LINK_ERROR_CODE]: {
-        code: NOT_A_LOGIN_LINK_ERROR_CODE,
+    [AuthErrorCodes.NOT_A_LOGIN_LINK_ERROR_CODE]: {
+        code: AuthErrorCodes.NOT_A_LOGIN_LINK_ERROR_CODE,
         message: "Link de login inválido"
+    },
+    [AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD]: {
+        code: AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD,
+        message: "A conta já possui um cadastro com email e senha"
     }
 }
 
@@ -123,38 +134,43 @@ export default {
 
     signInWithOauthProvider: (providerId: OauthProviderIds) => signInWithRedirect(auth, OauthProvidersInstanceMapper[providerId]),
 
-    getOauthRedirectResult: (): Promise<Response> => getRedirectResult(auth)
+    linkPendingCredential: async (user: User): Promise<Response> => {
+        const pendingCredential = sessionStorage.getItem(`oauth:${user.email}`);
+
+        pendingCredential && linkWithCredential(user, OAuthProvider.credentialFromJSON(pendingCredential)).catch(error => {
+            if (error.code === AuthErrorCodes.PROVIDER_ALREADY_LINKED) {
+                return {
+                    success: true,
+                    type: 'success'
+                }
+            }
+        })
+        return {
+            success: true,
+            type: 'success'
+        }
+    },
+
+    getOauthRedirectResult: async (onSuccess: (credential: UserCredential) => void, onError: (error: AuthError) => void): Promise<void> => getRedirectResult(auth)
         .then((result) => {
-            console.log(result)
-            if (!result?.providerId) throw new Error("");
+            if (!result?.providerId) throw new Error(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE].message);
+
             const { providerId } = result
             const provider = OauthProvidersClassMapper[providerId as OauthProviderIds]
+            if (!provider) throw new Error(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE].message);
 
-            if (!provider) throw new Error("");
             // This gives you a Access Token
             const credential = provider.credentialFromResult(result);
-            if (!credential) throw new Error("");
-            const token = credential.accessToken;
-            // The signed-in user info.
-            const user = result.user;
-            const pendingCredential = sessionStorage.getItem(`oauth:${user.email}`);
-            console.log('pendingCredential', pendingCredential)
-            pendingCredential && linkWithCredential(user, OAuthProvider.credentialFromJSON(pendingCredential)).catch(err => {
-                console.log(JSON.stringify(err)) // TODO: handle Error (auth/provider-already-linked).
-            })
+            if (!credential) throw new Error(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE].message);
 
-            const response: Response = {
-                success: true,
-                type: 'success'
-            }
-            return response;
+            const token = credential.accessToken;
+            onSuccess(result)
         }).catch((error: FirebaseError) => {
             // Handle Errors here.
             if (error.code === AuthErrorCodes.NEED_CONFIRMATION) { // "auth/account-exists-with-different-credential"
                 // User's email already exists.
                 // The pending credential.
                 const pendingCredential = OAuthProvider.credentialFromError(error);;
-
                 // The provider account's email address.
                 const email = error.customData?.email as string;
                 // save pending credention on sessionStorage
@@ -167,39 +183,28 @@ export default {
                     // the first method in the list will be the "recommended" method to use.
                     if (methods[0] === 'password') {
                         // Asks the user their password.
-                        // In real scenario, you should handle this asynchronously.
-                        // var password = promptUserForPassword(); // TODO: implement promptUserForPassword.
-                        // signInWithEmailAndPassword(auth, email, password).then((result) => {
-                        //     // Step 4a.
-                        //     return result.user.linkWithCredential(pendingCredential);
-                        // }).then(function () {
-                        //     // GitHub account successfully linked to the existing Firebase user.
-                        //     goToApp();
-                        // });
-                        return {
-                            type: 'error',
-                            success: false
-                        };
+                        onError({
+                            ...AuthErrorMapper[AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD],
+                            email
+                        })
+                    } else {
+                        // All the other cases are external providers.
+                        // Construct provider object for that provider.
+                        const provider = getProviderForProviderId(methods[0] as OauthProviderIds);
+                        // At this point, you should let the user know that they already have an account
+                        // but with a different provider, and let them validate the fact they want to
+                        // sign in with this provider.
+                        // Sign in to provider.
+                        signInWithRedirect(auth, provider)
                     }
-
-                    // All the other cases are external providers.
-                    // Construct provider object for that provider.
-                    const provider = getProviderForProviderId(methods[0] as OauthProviderIds);
-                    // At this point, you should let the user know that they already have an account
-                    // but with a different provider, and let them validate the fact they want to
-                    // sign in with this provider.
-                    // Sign in to provider.
-                    console.log(provider)
-                    signInWithRedirect(auth, provider)
-                }).catch(console.log)
+                }).catch(error => {
+                    onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
+                })
             }
             const errorMessage = error.message;
             // The email of the user's account used.
             console.log(error)
-            return {
-                type: 'error',
-                success: false
-            }
+            onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
         }),
     isSignInWithEmailLink: () => isSignInWithEmailLink(auth, window.location.href),
     sendSignInLinkToEmail: (email: string): Promise<Response> => sendSignInLinkToEmail(auth, email, {
@@ -217,7 +222,6 @@ export default {
         return response;
     }).catch((error: FirebaseError) => {
         console.log(error.code)
-
         if (AuthErrorMapper[error.code]) {
             return {
                 error: AuthErrorMapper[error.code],
@@ -226,7 +230,7 @@ export default {
             }
         }
         return {
-            error: AuthErrorMapper[GENERIC_ERROR_CODE],
+            error: AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE],
             type: "error",
             success: false
         }
@@ -264,7 +268,7 @@ export default {
             } else {
                 const response: Response = {
                     type: 'error',
-                    error: AuthErrorMapper[NOT_A_LOGIN_LINK_ERROR_CODE],
+                    error: AuthErrorMapper[AuthErrorCodes.NOT_A_LOGIN_LINK_ERROR_CODE],
                     success: false
                 }
                 return response;
@@ -281,7 +285,7 @@ export default {
                 }
             }
             return {
-                error: AuthErrorMapper[GENERIC_ERROR_CODE],
+                error: AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE],
                 type: "error",
                 success: false
             }
@@ -308,3 +312,5 @@ export default {
         return reauthenticateWithCredential(auth.currentUser, userCredentials)
     }
 }
+
+
