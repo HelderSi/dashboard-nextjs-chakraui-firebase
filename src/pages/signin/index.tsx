@@ -1,9 +1,13 @@
 import type { NextPage } from "next";
+import NextLink from "next/link";
+
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Center } from "@chakra-ui/layout";
+import { FaInfoCircle } from 'react-icons/fa'
+
 import { Button, useColorModeValue } from "@chakra-ui/react";
 import DashboardLogo from "components/ui/atoms/DashboardLogo";
 import { useAuth } from "../../contexts/AuthUserContext";
@@ -13,6 +17,7 @@ import ColorModeToggler from "components/ui/molecules/ColorModeToggler";
 import { SocialLogin } from "components/ui/organisms/SocialLogin";
 import { TextDivider } from "components/ui/atoms/TextDivider";
 import { authConfig } from "../../configs/auth";
+import { useCallback } from "react";
 
 type SignInFormData = {
   email: string;
@@ -25,16 +30,23 @@ const signInFormSchema = yup.object().shape({
 });
 
 const SignIn: NextPage = () => {
-  const { signInWithEmailAndPassword, sendSignInLinkToEmail, signInWithEmailLink } = useAuth();
-  const { register, handleSubmit, formState } = useForm<SignInFormData>({
+  const { signInWithEmailAndPassword, sendSignInLinkToEmail, passwordRequiredForEmail } = useAuth();
+  const { register, handleSubmit, formState, getValues } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
+    defaultValues: {
+      email: passwordRequiredForEmail || ""
+    }
   });
   const { errors } = formState;
   const router = useRouter()
   const toast = useToast()
 
+  console.log(passwordRequiredForEmail)
+  console.log(getValues())
+
   const handleSignIn = async (values: SignInFormData) => {
-    if (authConfig.email.withoutPassword) {
+    console.log(values)
+    if (!isPasswordRequired()) {
       sendSignInLinkToEmail(values.email).catch(err => {
         toast({
           title: 'Erro',
@@ -72,6 +84,11 @@ const SignIn: NextPage = () => {
       })
   };
 
+  const isPasswordRequired = useCallback(() => {
+    return passwordRequiredForEmail || !authConfig.email.withoutPassword
+  }, [passwordRequiredForEmail, authConfig.email.withoutPassword])
+
+
   return (
     <Flex w="100vw" h="100vh" align="center" justify="center">
       <Flex
@@ -88,28 +105,48 @@ const SignIn: NextPage = () => {
           <Center>
             <DashboardLogo />
           </Center>
-          {authConfig.social.enabled &&
+          {
+            authConfig.social.enabled && !passwordRequiredForEmail &&
             <>
               <SocialLogin />
               <TextDivider text="ou" />
-            </>}
+            </>
+          }
 
-          <Input
+          {passwordRequiredForEmail &&
+            <HStack>
+              <FaInfoCircle color='tomato' size={32} />
+              <Text as='b' color='tomato'>
+                Você já possui um conta cadastrada! Digite sua senha para continuar.
+              </Text>
+            </HStack>}
+          {passwordRequiredForEmail || <Input
             type="email"
             label="E-mail"
             error={errors.email}
             {...register("email")}
-          />
+          />}
 
-          {authConfig.email.withoutPassword ||
+          {passwordRequiredForEmail &&
+            <HStack>
+              <Text as='b'>
+                Email:
+              </Text>
+              <Text as='b'>
+                {passwordRequiredForEmail}
+              </Text>
+            </HStack>}
+
+          {isPasswordRequired() &&
             <Input
               type="password"
               label="Senha"
               error={errors.password}
+              autoFocus={!!passwordRequiredForEmail}
               {...register("password")}
             />}
         </Stack>
-        {authConfig.email.withoutPassword ||
+        {isPasswordRequired() &&
           <Button
             alignSelf="flex-end"
             mt={2}
@@ -117,7 +154,7 @@ const SignIn: NextPage = () => {
             fontSize={"sm"}
             fontWeight={600}
             variant={"link"}
-            href={"/forgot-pw"}
+            href={`/forgot-pw${passwordRequiredForEmail ? `?email=${passwordRequiredForEmail}` : ""}`}
           >
             Esqueceu sua senha?
           </Button>}
@@ -131,18 +168,28 @@ const SignIn: NextPage = () => {
         >
           Entrar
         </Button>
-        <HStack mt={4}>
+        {passwordRequiredForEmail && <Button
+          mt="4"
+          variant='ghost'
+          size="lg"
+          isLoading={formState.isSubmitting}
+          as="a"
+          href={`/signin`}
+        >
+          Entrar com outra conta
+        </Button>}
+        {!!passwordRequiredForEmail || <HStack mt={4}>
           <Text>Não possui uma conta?</Text>
           <Button
-            as={"a"}
             fontSize={"sm"}
             fontWeight={600}
             variant={"link"}
             href={"/signup"}
+            as={NextLink}
           >
             Cadastre-se
           </Button>
-        </HStack>
+        </HStack>}
         <Center mt='6'>
           <ColorModeToggler />
         </Center>

@@ -2,6 +2,10 @@
 
 A front-end dashboard template for fast starting.
 
+## Reference
+
+- Atomic Design
+
 ## Features
 
 - Social Login

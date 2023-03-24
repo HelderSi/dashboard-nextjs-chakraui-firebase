@@ -166,6 +166,7 @@ export default {
             const token = credential.accessToken;
             onSuccess(result)
         }).catch((error: FirebaseError) => {
+            console.log(error)
             // Handle Errors here.
             if (error.code === AuthErrorCodes.NEED_CONFIRMATION) { // "auth/account-exists-with-different-credential"
                 // User's email already exists.
@@ -201,9 +202,7 @@ export default {
                     onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
                 })
             }
-            const errorMessage = error.message;
             // The email of the user's account used.
-            console.log(error)
             onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
         }),
     isSignInWithEmailLink: () => isSignInWithEmailLink(auth, window.location.href),

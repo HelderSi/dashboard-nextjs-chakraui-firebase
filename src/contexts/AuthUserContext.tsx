@@ -6,7 +6,6 @@ import {
   createContext,
   useContext,
 } from "react";
-import NextLink from "next/link";
 
 import { useRouter } from "next/router";
 
@@ -14,9 +13,6 @@ import { authConfig } from "../configs/auth";
 import { auth } from "../services/firebase";
 
 import { OauthProviders, OauthProviderIds, AuthErrorCodes } from "../services/firebase/auth";
-import { Button, Highlight, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text } from "@chakra-ui/react";
-import { Input } from "components/ui/atoms/Input";
-import { PasswordLogin } from "components/ui/organisms/PasswordLogin";
 
 type UserType = {
   uid: string;
@@ -69,6 +65,7 @@ type UserEditableInfoType = Partial<Omit<UserType, 'uid' | 'email' | 'emailVerif
 type ContextValueType = {
   authUser: UserType | null;
   loading: boolean;
+  passwordRequiredForEmail?: string;
   signInWithSocialLogin(provider: SocialLoginProvider): Promise<void>;
   signInWithEmailAndPassword(email: string, password: string): Promise<void>;
   sendSignInLinkToEmail(email: string): Promise<boolean>;
@@ -127,7 +124,9 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       },
       (error) => {
         if (error.code === AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD) {
-          setPasswordRequiredForEmail(error.email)
+          setPasswordRequiredForEmail(error.email);
+          if (router.route === '/signup')
+            router.push('/signin')
         }
       })
   }, []);
@@ -207,6 +206,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     <authUserContext.Provider value={{
       authUser,
       loading,
+      passwordRequiredForEmail,
       signInWithSocialLogin,
       signInWithEmailAndPassword,
       sendSignInLinkToEmail,
@@ -218,21 +218,9 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       updateCurrentUserPassword,
       sendEmailVerification,
       getAvailableMethods,
-      isSignInWithEmailLink
+      isSignInWithEmailLink,
     }}>
-      <>
-        {children}
-        <Modal isOpen={!!passwordRequiredForEmail} onClose={() => setPasswordRequiredForEmail(undefined)}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Digite sua senha</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <PasswordLogin initialValues={{ email: passwordRequiredForEmail }} />
-            </ModalBody>
-          </ModalContent>
-        </Modal>
-      </>
+      {children}
     </authUserContext.Provider>
   );
 }
