@@ -79,11 +79,13 @@ const getProviderForProviderId = (id: OauthProviderIds) => {
 export const AuthErrorCodes = {
     ...FirebaseAuthErrorCodes,
     GENERIC_ERROR_CODE: "auth/generic-error" as "auth/generic-error",
-    NOT_A_LOGIN_LINK_ERROR_CODE: "auth/not-a-login-link" as "auth/not-a-login-link",
-    REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD: "auth/required-sign-in-with-email-and-password" as "auth/required-sign-in-with-email-and-password"
+    NOT_A_LOGIN_LINK: "auth/not-a-login-link" as "auth/not-a-login-link",
+    REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD: "auth/required-sign-in-with-email-and-password" as "auth/required-sign-in-with-email-and-password",
+    EMAIL_NOT_FOUND_LOCALLY: "auth/email-not-found-locally" as "auth/email-not-found-locally",
 }
 
-type AuthError = {
+export type AuthError = {
+    title: string;
     message: string;
     code: string;
     email?: string;
@@ -92,25 +94,55 @@ const AuthErrorMapper: {
     [code: string]: AuthError
 } = {
     [AuthErrorCodes.QUOTA_EXCEEDED]: {
+        title: "Erro",
         message: "Quota diária excedida",
         code: AuthErrorCodes.QUOTA_EXCEEDED,
     },
     [AuthErrorCodes.NEED_CONFIRMATION]: { // "auth/account-exists-with-different-credential"
+        title: "Erro",
         message: "O email informado já existe",
         code: AuthErrorCodes.NEED_CONFIRMATION
     },
     [AuthErrorCodes.GENERIC_ERROR_CODE]: {
+        title: "Erro",
         message: "Um erro não identificado ocorreu",
         code: AuthErrorCodes.GENERIC_ERROR_CODE
     },
-    [AuthErrorCodes.NOT_A_LOGIN_LINK_ERROR_CODE]: {
-        code: AuthErrorCodes.NOT_A_LOGIN_LINK_ERROR_CODE,
+    [AuthErrorCodes.NOT_A_LOGIN_LINK]: {
+        title: "Erro",
+        code: AuthErrorCodes.NOT_A_LOGIN_LINK,
         message: "Link de login inválido"
     },
     [AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD]: {
+        title: "Conta já existe",
         code: AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD,
         message: "A conta já possui um cadastro com email e senha"
-    }
+    },
+    [AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY]: {
+        title: "Erro",
+        code: AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY,
+        message: "Não foi possivél identificar o email"
+    },
+    [AuthErrorCodes.INVALID_OOB_CODE]: {
+        title: "Link inválido",
+        code: AuthErrorCodes.INVALID_OOB_CODE,
+        message: "Envie o link novamente"
+    },
+    [AuthErrorCodes.INVALID_PASSWORD]: {
+        title: "Erro",
+        code: AuthErrorCodes.INVALID_PASSWORD,
+        message: "Login ou senha inválidos"
+    },
+    [AuthErrorCodes.INVALID_EMAIL]: {
+        title: "Erro",
+        code: AuthErrorCodes.INVALID_EMAIL,
+        message: "Login ou senha inválidos"
+    },
+    [AuthErrorCodes.USER_DELETED]: {
+        title: "Erro",
+        code: AuthErrorCodes.USER_DELETED,
+        message: "Login ou senha inválidos"
+    },
 }
 
 type ResponseType = 'success' | 'error';
@@ -124,7 +156,19 @@ type Response = {
 export default {
     getAuth: () => auth,
     getCurrentUser: () => auth.currentUser,
-    signInWithEmailAndPassword: (email: string, password: string) => signInWithEmailAndPassword(auth, email, password),
+    signInWithEmailAndPassword: (email: string, password: string) =>
+        (onSuccess: (credential: UserCredential) => void, onError: (error: AuthError) => void) =>
+            signInWithEmailAndPassword(auth, email, password).then(onSuccess).catch(error => {
+                console.log(error)
+                if (error instanceof FirebaseError) {
+                    if (AuthErrorMapper[error.code]) {
+                        onError(AuthErrorMapper[error.code])
+                        return;
+                    }
+                }
+                onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
+                return;
+            }),
 
     signInWithGoogle: () => signInWithRedirect(auth, googleAuthProvider),
     signInWithFacebook: () => signInWithRedirect(auth, facebookAuthProvider),
@@ -234,7 +278,7 @@ export default {
             success: false
         }
     }),
-    signInWithEmailLink: async (): Promise<Response> => {
+    signInWithEmailLink: async (onSuccess: (credential: UserCredential) => void, onError: (error: AuthError) => void): Promise<void> => {
         try {
             if (isSignInWithEmailLink(auth, location.href)) {
                 // Additional state parameters can also be passed via URL.
@@ -245,10 +289,10 @@ export default {
                 let email = localStorage.getItem('emailForSignIn');
                 if (!email) {
                     // User opened the link on a different device. To prevent session fixation
-                    // attacks, ask the user to provide the associated email again. For example:
-                    email = prompt('Por favor, confirme seu email:');
+                    // attacks, ask the user to provide the associated email again.
+                    onError(AuthErrorMapper[AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY])
+                    return;
                 }
-                if (!email) throw new Error("")
                 // The client SDK will parse the code from the link for you.
                 const result = await signInWithEmailLink(auth, email, window.location.href)
                 // Clear email from storage.
@@ -258,40 +302,35 @@ export default {
                 // result.additionalUserInfo.profile == null
                 // You can check if the user is new or existing:
                 // result.additionalUserInfo.isNewUser
-                const response: Response = {
-                    success: true,
-                    type: 'success'
-                }
-                return response;
-
+                onSuccess(result)
             } else {
-                const response: Response = {
-                    type: 'error',
-                    error: AuthErrorMapper[AuthErrorCodes.NOT_A_LOGIN_LINK_ERROR_CODE],
-                    success: false
-                }
-                return response;
+                onError(AuthErrorMapper[AuthErrorCodes.NOT_A_LOGIN_LINK])
             }
         } catch (error) {
+            console.log(error)
             if (error instanceof FirebaseError) {
-                console.log(error.code)
                 if (AuthErrorMapper[error.code]) {
-                    return {
-                        error: AuthErrorMapper[error.code],
-                        type: "error",
-                        success: false
-                    }
+                    onError(AuthErrorMapper[error.code])
+                    return;
                 }
             }
-            return {
-                error: AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE],
-                type: "error",
-                success: false
-            }
+            onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
+            return;
         }
-
     },
-    createUserWithEmailAndPassword: (email: string, password: string) => createUserWithEmailAndPassword(auth, email, password),
+    createUserWithEmailAndPassword: (email: string, password: string) =>
+        (onSuccess: (credential: UserCredential) => void, onError: (error: AuthError) => void) =>
+            createUserWithEmailAndPassword(auth, email, password).then(onSuccess).catch(error => {
+                console.log(error)
+                if (error instanceof FirebaseError) {
+                    if (AuthErrorMapper[error.code]) {
+                        onError(AuthErrorMapper[error.code])
+                        return;
+                    }
+                }
+                onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
+                return;
+            }),
     onAuthStateChanged,
     sendPasswordResetEmail: (email: string) => sendPasswordResetEmail(auth, email),
     signOut: () => signOut(auth),

@@ -8,16 +8,15 @@ import { Input } from "components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Center } from "@chakra-ui/layout";
 import { FaInfoCircle } from 'react-icons/fa'
 
-import { Button, useColorModeValue } from "@chakra-ui/react";
+import { Alert, AlertDescription, AlertIcon, AlertTitle, Button, useColorModeValue } from "@chakra-ui/react";
 import DashboardLogo from "components/ui/atoms/DashboardLogo";
-import { useAuth } from "../../contexts/AuthUserContext";
+import { AUTH_ERROR_CODES, useAuth } from "../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
-import { useToast } from "@chakra-ui/react";
 import ColorModeToggler from "components/ui/molecules/ColorModeToggler";
 import { SocialLogin } from "components/ui/organisms/SocialLogin";
 import { TextDivider } from "components/ui/atoms/TextDivider";
 import { authConfig } from "../../configs/auth";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 type SignInFormData = {
   email: string;
@@ -30,7 +29,14 @@ const signInFormSchema = yup.object().shape({
 });
 
 const SignIn: NextPage = () => {
-  const { signInWithEmailAndPassword, sendSignInLinkToEmail, passwordRequiredForEmail } = useAuth();
+  const {
+    signInWithEmailAndPassword,
+    sendSignInLinkToEmail,
+    passwordRequiredForEmail,
+    askEmailAgainForSignInFromLink,
+    signInWithEmailLink,
+    authError,
+  } = useAuth();
   const { register, handleSubmit, formState, getValues } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
     defaultValues: {
@@ -39,48 +45,25 @@ const SignIn: NextPage = () => {
   });
   const { errors } = formState;
   const router = useRouter()
-  const toast = useToast()
-
-  console.log(passwordRequiredForEmail)
-  console.log(getValues())
 
   const handleSignIn = async (values: SignInFormData) => {
-    console.log(values)
-    if (!isPasswordRequired()) {
-      sendSignInLinkToEmail(values.email).catch(err => {
-        toast({
-          title: 'Erro',
-          description: 'Ocorreu um erro ao logar',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-          position: 'top'
-
-        })
-      })
-      toast({
-        title: 'Link enviado',
-        description: 'Acesse seu email e clique no link para logar.',
-        status: 'success',
-        duration: null,
-        isClosable: true,
-        position: 'top'
-      })
+    if (askEmailAgainForSignInFromLink && authError?.code !== AUTH_ERROR_CODES.INVALID_OOB_CODE) {
+      localStorage.setItem('emailForSignIn', values.email);
+      signInWithEmailLink();
       return;
     }
+    if (authError?.code === AUTH_ERROR_CODES.INVALID_OOB_CODE) {
+      await sendSignInLinkToEmail(values.email)
+      return;
+    }
+    if (!isPasswordRequired()) {
+      await sendSignInLinkToEmail(values.email)
+      return;
+    }
+
     signInWithEmailAndPassword(values.email, values.password)
       .then(() => {
         router.push('/')
-      }).catch(err => {
-        console.log(err.message)
-        toast({
-          title: 'Erro',
-          description: 'Ocorreu um erro ao logar',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-          position: 'top'
-        })
       })
   };
 
@@ -88,7 +71,49 @@ const SignIn: NextPage = () => {
     return passwordRequiredForEmail || !authConfig.email.withoutPassword
   }, [passwordRequiredForEmail, authConfig.email.withoutPassword])
 
+  if (askEmailAgainForSignInFromLink) {
+    return <Flex w="100vw" h="100vh" align="center" justify="center">
+      <Flex
+        as="form"
+        onSubmit={handleSubmit(handleSignIn)}
+        width="100%"
+        maxWidth={360}
+        bg={useColorModeValue("gray.50", "gray.700")}
+        p="8"
+        borderRadius={8}
+        flexDir="column"
+      >
+        <Stack spacing="4">
+          <Center>
+            <DashboardLogo />
+          </Center>
+          {authError &&
+            <Alert status='error' borderRadius={'md'}>
+              <AlertIcon />
+              <AlertTitle>{authError.title}</AlertTitle>
+              <AlertDescription>{authError.message}</AlertDescription>
+            </Alert>}
+          <Input
+            type="email"
+            label="E-mail"
+            error={errors.email}
+            autoFocus={true}
+            {...register("email")}
+          />
+        </Stack>
 
+        <Button
+          type="submit"
+          mt="4"
+          colorScheme="green"
+          size="lg"
+          isLoading={formState.isSubmitting}
+        >
+          {authError?.code === AUTH_ERROR_CODES.INVALID_OOB_CODE ? 'Enviar link novamente' : 'Entrar'}
+        </Button>
+      </Flex>
+    </Flex>
+  }
   return (
     <Flex w="100vw" h="100vh" align="center" justify="center">
       <Flex

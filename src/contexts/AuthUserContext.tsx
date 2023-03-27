@@ -6,13 +6,13 @@ import {
   createContext,
   useContext,
 } from "react";
-
+import { useToast } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
 import { authConfig } from "../configs/auth";
 import { auth } from "../services/firebase";
 
-import { OauthProviders, OauthProviderIds, AuthErrorCodes } from "../services/firebase/auth";
+import { OauthProviders, OauthProviderIds, AuthErrorCodes, AuthError } from "../services/firebase/auth";
 
 type UserType = {
   uid: string;
@@ -66,6 +66,9 @@ type ContextValueType = {
   authUser: UserType | null;
   loading: boolean;
   passwordRequiredForEmail?: string;
+  askEmailAgainForSignInFromLink: boolean;
+  authError?: AuthError;
+  resetAuthError(): void;
   signInWithSocialLogin(provider: SocialLoginProvider): Promise<void>;
   signInWithEmailAndPassword(email: string, password: string): Promise<void>;
   sendSignInLinkToEmail(email: string): Promise<boolean>;
@@ -82,6 +85,8 @@ type ContextValueType = {
 
 const authUserContext = createContext({} as ContextValueType);
 
+export const AUTH_ERROR_CODES = AuthErrorCodes;
+
 interface AuthUserProviderProps {
   children: ReactNode;
 }
@@ -90,7 +95,11 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const [authUser, setAuthUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
   const [passwordRequiredForEmail, setPasswordRequiredForEmail] = useState<string>()
+  const [askEmailAgainForSignInFromLink, setAskEmailAgainForSignInFromLink] = useState(false)
+  const [authError, setAuthError] = useState<AuthError>()
+
   const router = useRouter();
+  const toast = useToast()
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(
@@ -120,7 +129,6 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   useEffect(() => {
     auth.getOauthRedirectResult(
       (credential) => {
-
       },
       (error) => {
         if (error.code === AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD) {
@@ -131,9 +139,30 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       })
   }, []);
 
+  const resetAuthError = useCallback(() => {
+    setAuthError(undefined)
+  }, [])
+
+  useEffect(() => {
+    if (authError) {
+      toast({
+        id: authError.code, // used to prevent duplicate
+        title: authError?.title,
+        description: authError?.message,
+        status: 'error',
+        duration: 6000,
+        isClosable: true,
+        position: 'top'
+      })
+    }
+  }, [authError, resetAuthError])
+
   const signInWithEmailAndPassword = useCallback(
     async (email: string, password: string) => {
-      await auth.signInWithEmailAndPassword(email, password);
+      await auth.signInWithEmailAndPassword(email, password)(
+        (credential) => { },
+        setAuthError
+      )
     },
     []
   );
@@ -147,14 +176,25 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
 
   const createUserWithEmailAndPassword = useCallback(
     async (email: string, password: string) => {
-      await auth.createUserWithEmailAndPassword(email, password);
+      await auth.createUserWithEmailAndPassword(email, password)(
+        (credential) => { },
+        setAuthError
+      );
     },
     []
   );
 
   const signInWithEmailLink = useCallback(
     async () => {
-      await auth.signInWithEmailLink();
+      await auth.signInWithEmailLink(
+        (credential) => { },
+        (error) => {
+          console.log(error)
+          if (error.code === AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY) {
+            setAskEmailAgainForSignInFromLink(true)
+          }
+          setAuthError(error)
+        });
     },
     []
   );
@@ -162,7 +202,19 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const sendSignInLinkToEmail = useCallback(
     async (email: string) => {
       const result = await auth.sendSignInLinkToEmail(email);
-      return result.success
+      if (result.error) {
+        setAuthError(result.error)
+        return false
+      }
+      toast({
+        title: 'Link enviado',
+        description: 'Acesse seu email e clique no link',
+        status: 'success',
+        duration: null,
+        isClosable: true,
+        position: 'top'
+      })
+      return true;
     },
     []
   );
@@ -207,6 +259,9 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       authUser,
       loading,
       passwordRequiredForEmail,
+      askEmailAgainForSignInFromLink,
+      authError,
+      resetAuthError,
       signInWithSocialLogin,
       signInWithEmailAndPassword,
       sendSignInLinkToEmail,

@@ -10,7 +10,6 @@ import { Button, useColorModeValue } from "@chakra-ui/react";
 import DashboardLogo from "components/ui/atoms/DashboardLogo";
 import { useAuth } from "../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
-import { useToast } from "@chakra-ui/toast";
 import { SocialLogin } from "components/ui/organisms/SocialLogin";
 import { TextDivider } from "components/ui/atoms/TextDivider";
 import { authConfig } from "../../configs/auth";
@@ -33,7 +32,6 @@ const SignUp: NextPage = () => {
 
   const { createUserWithEmailAndPassword, sendSignInLinkToEmail } = useAuth();
   const router = useRouter();
-  const toast = useToast();
 
   const handleSignUp = (values: SignInFormData) => {
     if (authConfig.email.withoutPassword) {
@@ -43,20 +41,8 @@ const SignUp: NextPage = () => {
     createUserWithEmailAndPassword(values.email, values.password)
       .then(() => {
         router.push("/");
-      })
-      .catch((err) => {
-        console.log(err.message);
-        toast({
-          title: "Erro",
-          description: "Ocorreu um erro ao logar",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-          position: "top",
-        });
       });
   };
-
 
   return (
     <Flex w="100vw" h="100vh" align="center" justify="center">

@@ -4,7 +4,6 @@ import theme from "styles/theme";
 import { AuthUserProvider } from 'contexts/AuthUserContext'
 import { SidebarDrawerProvider } from "contexts/SidebarDrawerContext";
 import DashboardLayout from "components/ui/templates/DashboardLayout";
-import styles from 'styles/custom/firebaseui-custom.css';
 
 
 function MyApp({ Component, pageProps }: AppProps) {
