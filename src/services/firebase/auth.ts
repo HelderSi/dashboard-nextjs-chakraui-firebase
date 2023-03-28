@@ -121,7 +121,7 @@ const AuthErrorMapper: {
     [AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY]: {
         title: "Erro",
         code: AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY,
-        message: "Não foi possivél identificar o email"
+        message: "Não foi possível identificar o email"
     },
     [AuthErrorCodes.INVALID_OOB_CODE]: {
         title: "Link inválido",
@@ -152,6 +152,10 @@ type Response = {
     error?: AuthError;
     success: boolean;
 }
+
+const saveEmailForSignIn = (email: string) => localStorage.setItem('emailForSignIn', email);
+const getEmailForSignIn = () => localStorage.getItem('emailForSignIn');
+const removeEmailForSignIn = () => localStorage.removeItem('emailForSignIn');
 
 export default {
     getAuth: () => auth,
@@ -250,6 +254,7 @@ export default {
             onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
         }),
     isSignInWithEmailLink: () => isSignInWithEmailLink(auth, window.location.href),
+    saveEmailForSignIn,
     sendSignInLinkToEmail: (email: string): Promise<Response> => sendSignInLinkToEmail(auth, email, {
         url: 'http://localhost:3000/signin',
         handleCodeInApp: true,
@@ -257,7 +262,7 @@ export default {
         // The link was successfully sent. Inform the user.
         // Save the email locally so you don't need to ask the user for it again
         // if they open the link on the same device.
-        localStorage.setItem('emailForSignIn', email);
+        saveEmailForSignIn(email)
         const response: Response = {
             success: true,
             type: 'success'
@@ -286,7 +291,7 @@ export default {
                 // the sign-in operation.
                 // Get the email if available. This should be available if the user completes
                 // the flow on the same device where they started it.
-                let email = localStorage.getItem('emailForSignIn');
+                let email = getEmailForSignIn()
                 if (!email) {
                     // User opened the link on a different device. To prevent session fixation
                     // attacks, ask the user to provide the associated email again.
@@ -296,7 +301,7 @@ export default {
                 // The client SDK will parse the code from the link for you.
                 const result = await signInWithEmailLink(auth, email, window.location.href)
                 // Clear email from storage.
-                window.localStorage.removeItem('emailForSignIn');
+                removeEmailForSignIn()
                 // You can access the new user via result.use 
                 // Additional user info profile not available via:
                 // result.additionalUserInfo.profile == null

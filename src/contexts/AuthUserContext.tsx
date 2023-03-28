@@ -72,7 +72,7 @@ type ContextValueType = {
   signInWithSocialLogin(provider: SocialLoginProvider): Promise<void>;
   signInWithEmailAndPassword(email: string, password: string): Promise<void>;
   sendSignInLinkToEmail(email: string): Promise<boolean>;
-  signInWithEmailLink(): Promise<void>;
+  signInWithEmailLink(email?: string): Promise<void>;
   createUserWithEmailAndPassword(email: string, password: string): Promise<void>;
   sendPasswordResetEmail(email: string): Promise<void>;
   signOut(): Promise<void>;
@@ -144,7 +144,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   }, [])
 
   useEffect(() => {
-    if (authError) {
+    if (authError)
       toast({
         id: authError.code, // used to prevent duplicate
         title: authError?.title,
@@ -154,8 +154,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         isClosable: true,
         position: 'top'
       })
-    }
-  }, [authError, resetAuthError])
+  }, [authError])
 
   const signInWithEmailAndPassword = useCallback(
     async (email: string, password: string) => {
@@ -185,7 +184,8 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   );
 
   const signInWithEmailLink = useCallback(
-    async () => {
+    async (email?: string) => {
+      email && auth.saveEmailForSignIn(email)
       await auth.signInWithEmailLink(
         (credential) => { },
         (error) => {

@@ -8,7 +8,7 @@ import { Input } from "components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Center } from "@chakra-ui/layout";
 import { FaInfoCircle } from 'react-icons/fa'
 
-import { Alert, AlertDescription, AlertIcon, AlertTitle, Button, useColorModeValue } from "@chakra-ui/react";
+import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, Button, useColorModeValue } from "@chakra-ui/react";
 import DashboardLogo from "components/ui/atoms/DashboardLogo";
 import { AUTH_ERROR_CODES, useAuth } from "../../contexts/AuthUserContext";
 import { useRouter } from "next/router";
@@ -16,7 +16,7 @@ import ColorModeToggler from "components/ui/molecules/ColorModeToggler";
 import { SocialLogin } from "components/ui/organisms/SocialLogin";
 import { TextDivider } from "components/ui/atoms/TextDivider";
 import { authConfig } from "../../configs/auth";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 type SignInFormData = {
   email: string;
@@ -36,6 +36,7 @@ const SignIn: NextPage = () => {
     askEmailAgainForSignInFromLink,
     signInWithEmailLink,
     authError,
+    resetAuthError
   } = useAuth();
   const { register, handleSubmit, formState, getValues } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
@@ -46,36 +47,41 @@ const SignIn: NextPage = () => {
   const { errors } = formState;
   const router = useRouter()
 
-  const handleSignIn = async (values: SignInFormData) => {
-    if (askEmailAgainForSignInFromLink && authError?.code !== AUTH_ERROR_CODES.INVALID_OOB_CODE) {
-      localStorage.setItem('emailForSignIn', values.email);
-      signInWithEmailLink();
-      return;
-    }
+  const handleSignInWithLink = useCallback(async (values: SignInFormData) => {
     if (authError?.code === AUTH_ERROR_CODES.INVALID_OOB_CODE) {
       await sendSignInLinkToEmail(values.email)
       return;
     }
-    if (!isPasswordRequired()) {
-      await sendSignInLinkToEmail(values.email)
+    if (askEmailAgainForSignInFromLink) {
+      await signInWithEmailLink(values.email);
       return;
     }
+    await sendSignInLinkToEmail(values.email)
+  }, [authError, sendSignInLinkToEmail, signInWithEmailLink, resetAuthError, askEmailAgainForSignInFromLink])
 
+  const handleSignInWithPassword = useCallback(async (values: SignInFormData) => {
     signInWithEmailAndPassword(values.email, values.password)
       .then(() => {
         router.push('/')
       })
-  };
+  }, [router, signInWithEmailAndPassword])
 
-  const isPasswordRequired = useCallback(() => {
+  const isSignInWithPassword = useCallback(() => {
     return passwordRequiredForEmail || !authConfig.email.withoutPassword
   }, [passwordRequiredForEmail, authConfig.email.withoutPassword])
+
+  const getSignInHandler = () => {
+    if (isSignInWithPassword()) {
+      return handleSignInWithPassword
+    }
+    return handleSignInWithLink
+  };
 
   if (askEmailAgainForSignInFromLink) {
     return <Flex w="100vw" h="100vh" align="center" justify="center">
       <Flex
         as="form"
-        onSubmit={handleSubmit(handleSignIn)}
+        onSubmit={handleSubmit(getSignInHandler())}
         width="100%"
         maxWidth={360}
         bg={useColorModeValue("gray.50", "gray.700")}
@@ -90,8 +96,12 @@ const SignIn: NextPage = () => {
           {authError &&
             <Alert status='error' borderRadius={'md'}>
               <AlertIcon />
-              <AlertTitle>{authError.title}</AlertTitle>
-              <AlertDescription>{authError.message}</AlertDescription>
+              <Box>
+                <AlertTitle>{authError.title}</AlertTitle>
+                <AlertDescription>
+                  {authError.message}
+                </AlertDescription>
+              </Box>
             </Alert>}
           <Input
             type="email"
@@ -109,7 +119,7 @@ const SignIn: NextPage = () => {
           size="lg"
           isLoading={formState.isSubmitting}
         >
-          {authError?.code === AUTH_ERROR_CODES.INVALID_OOB_CODE ? 'Enviar link novamente' : 'Entrar'}
+          {authError?.code === AUTH_ERROR_CODES.INVALID_OOB_CODE ? 'Enviar link' : 'Entrar'}
         </Button>
       </Flex>
     </Flex>
@@ -118,7 +128,7 @@ const SignIn: NextPage = () => {
     <Flex w="100vw" h="100vh" align="center" justify="center">
       <Flex
         as="form"
-        onSubmit={handleSubmit(handleSignIn)}
+        onSubmit={handleSubmit(getSignInHandler())}
         width="100%"
         maxWidth={360}
         bg={useColorModeValue("gray.50", "gray.700")}
@@ -162,7 +172,7 @@ const SignIn: NextPage = () => {
               </Text>
             </HStack>}
 
-          {isPasswordRequired() &&
+          {isSignInWithPassword() &&
             <Input
               type="password"
               label="Senha"
@@ -171,7 +181,7 @@ const SignIn: NextPage = () => {
               {...register("password")}
             />}
         </Stack>
-        {isPasswordRequired() &&
+        {isSignInWithPassword() &&
           <Button
             alignSelf="flex-end"
             mt={2}
