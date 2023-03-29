@@ -68,6 +68,7 @@ type ContextValueType = {
   passwordRequiredForEmail?: string;
   askEmailAgainForSignInFromLink: boolean;
   authError?: AuthError;
+  authState?: AuthStateType;
   resetAuthError(): void;
   signInWithSocialLogin(provider: SocialLoginProvider): Promise<void>;
   signInWithEmailAndPassword(email: string, password: string): Promise<void>;
@@ -91,12 +92,30 @@ interface AuthUserProviderProps {
   children: ReactNode;
 }
 
+type AuthStateType = {
+  type: 'error' | 'success' | 'incomplete';
+  error?: AuthError;
+  success?: {
+    code: string;
+    title: string;
+    message: string;
+  },
+  incomplete?: {
+    code: string;
+    title: string;
+    message: string;
+    email?: string;
+    actionRequired: 'auth/enter_email_again' | 'auth/sign_in_with_password';
+  }
+}
+
 export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const [authUser, setAuthUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
   const [passwordRequiredForEmail, setPasswordRequiredForEmail] = useState<string>()
   const [askEmailAgainForSignInFromLink, setAskEmailAgainForSignInFromLink] = useState(false)
   const [authError, setAuthError] = useState<AuthError>()
+  const [authState, setAuthState] = useState<AuthStateType>()
 
   const router = useRouter();
   const toast = useToast()
@@ -206,6 +225,16 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         setAuthError(result.error)
         return false
       }
+      setAuthState(
+        {
+          type: 'success',
+          success: {
+            code: 'auth/link_sent',
+            title: 'Link enviado',
+            message: 'Acesse seu email e clique no link',
+          }
+        }
+      )
       toast({
         title: 'Link enviado',
         description: 'Acesse seu email e clique no link',
@@ -261,6 +290,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       passwordRequiredForEmail,
       askEmailAgainForSignInFromLink,
       authError,
+      authState,
       resetAuthError,
       signInWithSocialLogin,
       signInWithEmailAndPassword,

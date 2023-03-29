@@ -36,7 +36,8 @@ const SignIn: NextPage = () => {
     askEmailAgainForSignInFromLink,
     signInWithEmailLink,
     authError,
-    resetAuthError
+    resetAuthError,
+    authState
   } = useAuth();
   const { register, handleSubmit, formState, getValues } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
