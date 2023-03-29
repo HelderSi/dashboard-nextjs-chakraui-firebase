@@ -92,22 +92,178 @@ interface AuthUserProviderProps {
   children: ReactNode;
 }
 
+// type AuthStateType = {
+//   type: 'error' | 'success' | 'incomplete' | 'alert';
+//   error?: AuthError;
+//   success?: {
+//   },
+//   incomplete?: {
+//     email?: string;
+//     actionRequired: 'auth/enter_email_again' | 'auth/sign_in_with_password';
+//   },
+//   alert?: {
+//     code: string;
+//     title: string;
+//     message: string;
+//     severity: 'error' | 'success' | 'warning' | 'info';
+//     showToast: boolean;
+//   },
+//   hiddenActions: {
+//     socialLogin: boolean;
+
+//   },
+//   actionRequired: {
+
+//   }
+// }
+
+type StateCodes = 'INITIAL' | 'SIGN_IN_LINK_SENT_TO_EMAIL' | 'PASSWORD_REQUIRED_FOR_EMAIL' | 'EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK' | 'INVALID_SIGN_IN_LINK'
+
 type AuthStateType = {
-  type: 'error' | 'success' | 'incomplete';
-  error?: AuthError;
-  success?: {
+  code: StateCodes,
+  alert?: {
     code: string;
     title: string;
     message: string;
+    severity: 'error' | 'success' | 'warning' | 'info';
+    showToast: boolean;
+  };
+  socialLogin: {
+    disabled: boolean;
   },
-  incomplete?: {
-    code: string;
-    title: string;
-    message: string;
-    email?: string;
-    actionRequired: 'auth/enter_email_again' | 'auth/sign_in_with_password';
+  emailInput: {
+    disabled: boolean;
+    initialValue?: string;
+  };
+  passwordInput: {
+    disabled: boolean;
+    requiredForEmail?: string;
+  };
+  submit: {
+    disabled: boolean;
+    action: 'sendSignInLinkToEmail' | 'signInWithEmailLink' | 'signInWithPassword',
+    title: 'Entrar' | 'Enviar link' | 'Reenviar link'
   }
 }
+
+const defaultStates: Record<StateCodes, AuthStateType> = {
+  INITIAL: {
+    code: 'INITIAL',
+    socialLogin: {
+      disabled: !authConfig.social.enabled,
+    },
+    emailInput: {
+      disabled: false,
+    },
+    passwordInput: {
+      disabled: authConfig.email.withoutPassword,
+    },
+    submit: {
+      disabled: false,
+      action: authConfig.email.withoutPassword ? 'sendSignInLinkToEmail' : 'signInWithPassword',
+      title: authConfig.email.withoutPassword ? 'Enviar link' : 'Entrar'
+    }
+  },
+  SIGN_IN_LINK_SENT_TO_EMAIL: {
+    code: 'SIGN_IN_LINK_SENT_TO_EMAIL',
+    alert: {
+      code: '',
+      title: 'Link enviado',
+      message: 'Verifique sua caixa de email',
+      severity: 'success',
+      showToast: true,
+    },
+    socialLogin: {
+      disabled: true,
+    },
+    emailInput: {
+      disabled: false,
+    },
+    passwordInput: {
+      disabled: true,
+    },
+    submit: {
+      disabled: true,
+      action: 'sendSignInLinkToEmail',
+      title: 'Reenviar link'
+    }
+  },
+  PASSWORD_REQUIRED_FOR_EMAIL: {
+    code: 'PASSWORD_REQUIRED_FOR_EMAIL',
+    alert: {
+      code: '',
+      title: '',
+      message: '',
+      severity: 'warning',
+      showToast: true,
+    },
+    socialLogin: {
+      disabled: true,
+    },
+    emailInput: {
+      disabled: true,
+      initialValue: ""
+    },
+    passwordInput: {
+      disabled: false,
+      requiredForEmail: "",
+    },
+    submit: {
+      disabled: false,
+      action: 'signInWithPassword',
+      title: 'Entrar'
+    }
+  },
+  EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK: {
+    code: 'EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK',
+    alert: {
+      code: '',
+      title: 'Email não identificado',
+      message: 'Favor confirmar seu email',
+      severity: 'error',
+      showToast: true,
+    },
+    socialLogin: {
+      disabled: true,
+    },
+    emailInput: {
+      disabled: false,
+    },
+    passwordInput: {
+      disabled: true,
+    },
+    submit: {
+      disabled: false,
+      action: 'signInWithEmailLink',
+      title: 'Entrar'
+    }
+  },
+  INVALID_SIGN_IN_LINK: {
+    code: 'INVALID_SIGN_IN_LINK',
+    alert: {
+      code: '',
+      title: 'Link inválido ou expirado',
+      message: 'Envie o link novamente',
+      severity: 'error',
+      showToast: true,
+    },
+    socialLogin: {
+      disabled: true,
+    },
+    emailInput: {
+      disabled: false,
+    },
+    passwordInput: {
+      disabled: true,
+    },
+    submit: {
+      disabled: false,
+      action: 'sendSignInLinkToEmail',
+      title: 'Enviar link'
+    }
+  }
+}
+
 
 export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const [authUser, setAuthUser] = useState<UserType | null>(null)
@@ -115,7 +271,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const [passwordRequiredForEmail, setPasswordRequiredForEmail] = useState<string>()
   const [askEmailAgainForSignInFromLink, setAskEmailAgainForSignInFromLink] = useState(false)
   const [authError, setAuthError] = useState<AuthError>()
-  const [authState, setAuthState] = useState<AuthStateType>()
+  const [authState, setAuthState] = useState<AuthStateType>(defaultStates.INITIAL)
 
   const router = useRouter();
   const toast = useToast()
@@ -210,7 +366,8 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         (error) => {
           console.log(error)
           if (error.code === AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY) {
-            setAskEmailAgainForSignInFromLink(true)
+            //setAskEmailAgainForSignInFromLink(true)
+            setAuthState(defaultStates.EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK)
           }
           setAuthError(error)
         });
@@ -225,16 +382,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         setAuthError(result.error)
         return false
       }
-      setAuthState(
-        {
-          type: 'success',
-          success: {
-            code: 'auth/link_sent',
-            title: 'Link enviado',
-            message: 'Acesse seu email e clique no link',
-          }
-        }
-      )
+      setAuthState(defaultStates.SIGN_IN_LINK_SENT_TO_EMAIL)
       toast({
         title: 'Link enviado',
         description: 'Acesse seu email e clique no link',

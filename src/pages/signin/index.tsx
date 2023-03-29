@@ -6,12 +6,10 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "components/ui/atoms/Input";
 import { Flex, HStack, Stack, Text, Center } from "@chakra-ui/layout";
-import { FaInfoCircle } from 'react-icons/fa'
 
 import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, Button, useColorModeValue } from "@chakra-ui/react";
 import DashboardLogo from "components/ui/atoms/DashboardLogo";
-import { AUTH_ERROR_CODES, useAuth } from "../../contexts/AuthUserContext";
-import { useRouter } from "next/router";
+import { useAuth } from "../../contexts/AuthUserContext";
 import ColorModeToggler from "components/ui/molecules/ColorModeToggler";
 import { SocialLogin } from "components/ui/organisms/SocialLogin";
 import { TextDivider } from "components/ui/atoms/TextDivider";
@@ -32,104 +30,38 @@ const SignIn: NextPage = () => {
   const {
     signInWithEmailAndPassword,
     sendSignInLinkToEmail,
-    passwordRequiredForEmail,
-    askEmailAgainForSignInFromLink,
-    signInWithEmailLink,
-    authError,
-    resetAuthError,
     authState
   } = useAuth();
-  const { register, handleSubmit, formState, getValues } = useForm<SignInFormData>({
+  const { register, handleSubmit, formState, } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
     defaultValues: {
-      email: passwordRequiredForEmail || ""
+      email: authState?.emailInput.initialValue || ""
     }
   });
   const { errors } = formState;
-  const router = useRouter()
 
-  const handleSignInWithLink = useCallback(async (values: SignInFormData) => {
-    if (authError?.code === AUTH_ERROR_CODES.INVALID_OOB_CODE) {
-      await sendSignInLinkToEmail(values.email)
-      return;
+
+  const submitHandler = useCallback(async (values: SignInFormData) => {
+    switch (authState?.submit.action) {
+      case 'signInWithPassword':
+        await signInWithEmailAndPassword(values.email, values.password)
+      case 'sendSignInLinkToEmail':
+        await sendSignInLinkToEmail(values.email)
+      case 'sendSignInLinkToEmail':
+        await sendSignInLinkToEmail(values.email)
     }
-    if (askEmailAgainForSignInFromLink) {
-      await signInWithEmailLink(values.email);
-      return;
-    }
-    await sendSignInLinkToEmail(values.email)
-  }, [authError, sendSignInLinkToEmail, signInWithEmailLink, resetAuthError, askEmailAgainForSignInFromLink])
+  }, [
+    authState?.submit.action,
+    signInWithEmailAndPassword,
+    sendSignInLinkToEmail,
+    sendSignInLinkToEmail
+  ])
 
-  const handleSignInWithPassword = useCallback(async (values: SignInFormData) => {
-    signInWithEmailAndPassword(values.email, values.password)
-      .then(() => {
-        router.push('/')
-      })
-  }, [router, signInWithEmailAndPassword])
-
-  const isSignInWithPassword = useCallback(() => {
-    return passwordRequiredForEmail || !authConfig.email.withoutPassword
-  }, [passwordRequiredForEmail, authConfig.email.withoutPassword])
-
-  const getSignInHandler = () => {
-    if (isSignInWithPassword()) {
-      return handleSignInWithPassword
-    }
-    return handleSignInWithLink
-  };
-
-  if (askEmailAgainForSignInFromLink) {
-    return <Flex w="100vw" h="100vh" align="center" justify="center">
-      <Flex
-        as="form"
-        onSubmit={handleSubmit(getSignInHandler())}
-        width="100%"
-        maxWidth={360}
-        bg={useColorModeValue("gray.50", "gray.700")}
-        p="8"
-        borderRadius={8}
-        flexDir="column"
-      >
-        <Stack spacing="4">
-          <Center>
-            <DashboardLogo />
-          </Center>
-          {authError &&
-            <Alert status='error' borderRadius={'md'}>
-              <AlertIcon />
-              <Box>
-                <AlertTitle>{authError.title}</AlertTitle>
-                <AlertDescription>
-                  {authError.message}
-                </AlertDescription>
-              </Box>
-            </Alert>}
-          <Input
-            type="email"
-            label="E-mail"
-            error={errors.email}
-            autoFocus={true}
-            {...register("email")}
-          />
-        </Stack>
-
-        <Button
-          type="submit"
-          mt="4"
-          colorScheme="green"
-          size="lg"
-          isLoading={formState.isSubmitting}
-        >
-          {authError?.code === AUTH_ERROR_CODES.INVALID_OOB_CODE ? 'Enviar link' : 'Entrar'}
-        </Button>
-      </Flex>
-    </Flex>
-  }
   return (
     <Flex w="100vw" h="100vh" align="center" justify="center">
       <Flex
         as="form"
-        onSubmit={handleSubmit(getSignInHandler())}
+        onSubmit={handleSubmit(submitHandler)}
         width="100%"
         maxWidth={360}
         bg={useColorModeValue("gray.50", "gray.700")}
@@ -141,48 +73,65 @@ const SignIn: NextPage = () => {
           <Center>
             <DashboardLogo />
           </Center>
+          {authState?.alert &&
+            <Alert status={authState.alert.severity} borderRadius={'md'}>
+              <AlertIcon />
+              <Box>
+                <AlertTitle>{authState.alert.title}</AlertTitle>
+                <AlertDescription>
+                  {authState.alert.message}
+                </AlertDescription>
+              </Box>
+            </Alert>}
           {
-            authConfig.social.enabled && !passwordRequiredForEmail &&
+            authState?.socialLogin.disabled ||
             <>
               <SocialLogin />
               <TextDivider text="ou" />
             </>
           }
 
-          {passwordRequiredForEmail &&
-            <HStack>
-              <FaInfoCircle color='tomato' size={32} />
-              <Text as='b' color='tomato'>
-                Você já possui um conta cadastrada! Digite sua senha para continuar.
-              </Text>
-            </HStack>}
-          {passwordRequiredForEmail || <Input
-            type="email"
-            label="E-mail"
-            error={errors.email}
-            {...register("email")}
-          />}
+          {authState?.passwordInput.requiredForEmail &&
+            <Alert status='warning' borderRadius={'md'}>
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Você já possui um conta cadastrada!</AlertTitle>
+                <AlertDescription>
+                  Digite sua senha para continuar
+                </AlertDescription>
+              </Box>
+            </Alert>
 
-          {passwordRequiredForEmail &&
+          }
+          {authState?.emailInput.disabled ||
+            <Input
+              type="email"
+              label="E-mail"
+              autoFocus={authState?.code === 'EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK'}
+              error={errors.email}
+              {...register("email")}
+            />}
+
+          {authState?.passwordInput.requiredForEmail &&
             <HStack>
               <Text as='b'>
                 Email:
               </Text>
               <Text as='b'>
-                {passwordRequiredForEmail}
+                {authState.passwordInput.requiredForEmail}
               </Text>
             </HStack>}
 
-          {isSignInWithPassword() &&
+          {authState?.passwordInput.disabled ||
             <Input
               type="password"
               label="Senha"
               error={errors.password}
-              autoFocus={!!passwordRequiredForEmail}
+              autoFocus={!!authState?.passwordInput.requiredForEmail}
               {...register("password")}
             />}
         </Stack>
-        {isSignInWithPassword() &&
+        {authState?.passwordInput.disabled ||
           <Button
             alignSelf="flex-end"
             mt={2}
@@ -190,7 +139,7 @@ const SignIn: NextPage = () => {
             fontSize={"sm"}
             fontWeight={600}
             variant={"link"}
-            href={`/forgot-pw${passwordRequiredForEmail ? `?email=${passwordRequiredForEmail}` : ""}`}
+            href={`/forgot-pw${authState?.passwordInput.requiredForEmail ? `?email=${authState?.passwordInput.requiredForEmail}` : ""}`}
           >
             Esqueceu sua senha?
           </Button>}
@@ -202,9 +151,9 @@ const SignIn: NextPage = () => {
           size="lg"
           isLoading={formState.isSubmitting}
         >
-          Entrar
+          {authState?.submit.title}
         </Button>
-        {passwordRequiredForEmail && <Button
+        {!!authState?.passwordInput.requiredForEmail && <Button
           mt="4"
           variant='ghost'
           size="lg"
@@ -214,7 +163,7 @@ const SignIn: NextPage = () => {
         >
           Entrar com outra conta
         </Button>}
-        {!!passwordRequiredForEmail || <HStack mt={4}>
+        {!!authState?.passwordInput.requiredForEmail || <HStack mt={4}>
           <Text>Não possui uma conta?</Text>
           <Button
             fontSize={"sm"}
