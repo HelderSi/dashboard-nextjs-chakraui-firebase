@@ -65,8 +65,6 @@ type UserEditableInfoType = Partial<Omit<UserType, 'uid' | 'email' | 'emailVerif
 type ContextValueType = {
   authUser: UserType | null;
   loading: boolean;
-  passwordRequiredForEmail?: string;
-  askEmailAgainForSignInFromLink: boolean;
   authError?: AuthError;
   authState?: AuthStateType;
   resetAuthError(): void;
@@ -167,9 +165,9 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
   SIGN_IN_LINK_SENT_TO_EMAIL: {
     code: 'SIGN_IN_LINK_SENT_TO_EMAIL',
     alert: {
-      code: '',
+      code: 'auth/sign_in_link_sent',
       title: 'Link enviado',
-      message: 'Verifique sua caixa de email',
+      message: 'Acesse seu email e clique no link',
       severity: 'success',
       showToast: true,
     },
@@ -191,9 +189,9 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
   PASSWORD_REQUIRED_FOR_EMAIL: {
     code: 'PASSWORD_REQUIRED_FOR_EMAIL',
     alert: {
-      code: '',
-      title: '',
-      message: '',
+      code: 'auth/password_required_for_email',
+      title: 'Você já possui um conta cadastrada!',
+      message: 'Digite sua senha para continuar',
       severity: 'warning',
       showToast: true,
     },
@@ -217,9 +215,9 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
   EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK: {
     code: 'EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK',
     alert: {
-      code: '',
+      code: 'auth/email_confirmation_required',
       title: 'Email não identificado',
-      message: 'Favor confirmar seu email',
+      message: 'Favor digitar seu email',
       severity: 'error',
       showToast: true,
     },
@@ -241,7 +239,7 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
   INVALID_SIGN_IN_LINK: {
     code: 'INVALID_SIGN_IN_LINK',
     alert: {
-      code: '',
+      code: 'auth/invalid_sign_in_link',
       title: 'Link inválido ou expirado',
       message: 'Envie o link novamente',
       severity: 'error',
@@ -268,8 +266,6 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
 export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const [authUser, setAuthUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
-  const [passwordRequiredForEmail, setPasswordRequiredForEmail] = useState<string>()
-  const [askEmailAgainForSignInFromLink, setAskEmailAgainForSignInFromLink] = useState(false)
   const [authError, setAuthError] = useState<AuthError>()
   const [authState, setAuthState] = useState<AuthStateType>(defaultStates.INITIAL)
 
@@ -307,7 +303,14 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       },
       (error) => {
         if (error.code === AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD) {
-          setPasswordRequiredForEmail(error.email);
+          setAuthState({
+            ...defaultStates.PASSWORD_REQUIRED_FOR_EMAIL,
+            passwordInput: {
+              ...defaultStates.PASSWORD_REQUIRED_FOR_EMAIL.passwordInput,
+              requiredForEmail: error.email,
+              disabled: false,
+            }
+          })
           if (router.route === '/signup')
             router.push('/signin')
         }
@@ -330,6 +333,20 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         position: 'top'
       })
   }, [authError])
+
+  useEffect(() => {
+    if (authState.alert?.showToast)
+      toast({
+        id: authState.alert.code, // used to prevent duplicate
+        title: authState.alert?.title,
+        description: authState.alert?.message,
+        status: authState.alert?.severity,
+        duration: 6000,
+        isClosable: true,
+        position: 'top'
+      })
+  }, [authState.alert])
+
 
   const signInWithEmailAndPassword = useCallback(
     async (email: string, password: string) => {
@@ -366,8 +383,12 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         (error) => {
           console.log(error)
           if (error.code === AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY) {
-            //setAskEmailAgainForSignInFromLink(true)
             setAuthState(defaultStates.EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK)
+            return;
+          }
+          if (error.code === AuthErrorCodes.INVALID_OOB_CODE) {
+            setAuthState(defaultStates.INVALID_SIGN_IN_LINK);
+            return;
           }
           setAuthError(error)
         });
@@ -383,14 +404,6 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         return false
       }
       setAuthState(defaultStates.SIGN_IN_LINK_SENT_TO_EMAIL)
-      toast({
-        title: 'Link enviado',
-        description: 'Acesse seu email e clique no link',
-        status: 'success',
-        duration: null,
-        isClosable: true,
-        position: 'top'
-      })
       return true;
     },
     []
@@ -435,8 +448,6 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     <authUserContext.Provider value={{
       authUser,
       loading,
-      passwordRequiredForEmail,
-      askEmailAgainForSignInFromLink,
       authError,
       authState,
       resetAuthError,

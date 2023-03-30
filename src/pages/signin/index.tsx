@@ -30,6 +30,7 @@ const SignIn: NextPage = () => {
   const {
     signInWithEmailAndPassword,
     sendSignInLinkToEmail,
+    signInWithEmailLink,
     authState
   } = useAuth();
   const { register, handleSubmit, formState, } = useForm<SignInFormData>({
@@ -42,19 +43,20 @@ const SignIn: NextPage = () => {
 
 
   const submitHandler = useCallback(async (values: SignInFormData) => {
+    console.log(authState?.submit.action)
     switch (authState?.submit.action) {
       case 'signInWithPassword':
         await signInWithEmailAndPassword(values.email, values.password)
       case 'sendSignInLinkToEmail':
         await sendSignInLinkToEmail(values.email)
-      case 'sendSignInLinkToEmail':
-        await sendSignInLinkToEmail(values.email)
+      case 'signInWithEmailLink':
+        await signInWithEmailLink(values.email)
     }
   }, [
     authState?.submit.action,
     signInWithEmailAndPassword,
     sendSignInLinkToEmail,
-    sendSignInLinkToEmail
+    signInWithEmailLink
   ])
 
   return (
@@ -89,19 +91,6 @@ const SignIn: NextPage = () => {
               <SocialLogin />
               <TextDivider text="ou" />
             </>
-          }
-
-          {authState?.passwordInput.requiredForEmail &&
-            <Alert status='warning' borderRadius={'md'}>
-              <AlertIcon />
-              <Box>
-                <AlertTitle>Você já possui um conta cadastrada!</AlertTitle>
-                <AlertDescription>
-                  Digite sua senha para continuar
-                </AlertDescription>
-              </Box>
-            </Alert>
-
           }
           {authState?.emailInput.disabled ||
             <Input
