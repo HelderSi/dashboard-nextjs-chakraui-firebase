@@ -65,12 +65,10 @@ type UserEditableInfoType = Partial<Omit<UserType, 'uid' | 'email' | 'emailVerif
 type ContextValueType = {
   authUser: UserType | null;
   loading: boolean;
-  authError?: AuthError;
   authState?: AuthStateType;
-  resetAuthError(): void;
   signInWithSocialLogin(provider: SocialLoginProvider): Promise<void>;
   signInWithEmailAndPassword(email: string, password: string): Promise<void>;
-  sendSignInLinkToEmail(email: string): Promise<boolean>;
+  sendSignInLinkToEmail(email: string): Promise<void>;
   signInWithEmailLink(email?: string): Promise<void>;
   createUserWithEmailAndPassword(email: string, password: string): Promise<void>;
   sendPasswordResetEmail(email: string): Promise<void>;
@@ -89,31 +87,6 @@ export const AUTH_ERROR_CODES = AuthErrorCodes;
 interface AuthUserProviderProps {
   children: ReactNode;
 }
-
-// type AuthStateType = {
-//   type: 'error' | 'success' | 'incomplete' | 'alert';
-//   error?: AuthError;
-//   success?: {
-//   },
-//   incomplete?: {
-//     email?: string;
-//     actionRequired: 'auth/enter_email_again' | 'auth/sign_in_with_password';
-//   },
-//   alert?: {
-//     code: string;
-//     title: string;
-//     message: string;
-//     severity: 'error' | 'success' | 'warning' | 'info';
-//     showToast: boolean;
-//   },
-//   hiddenActions: {
-//     socialLogin: boolean;
-
-//   },
-//   actionRequired: {
-
-//   }
-// }
 
 type StateCodes = 'INITIAL' | 'SIGN_IN_LINK_SENT_TO_EMAIL' | 'PASSWORD_REQUIRED_FOR_EMAIL' | 'EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK' | 'INVALID_SIGN_IN_LINK'
 
@@ -266,7 +239,6 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
 export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const [authUser, setAuthUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState(true)
-  const [authError, setAuthError] = useState<AuthError>()
   const [authState, setAuthState] = useState<AuthStateType>(defaultStates.INITIAL)
 
   const router = useRouter();
@@ -317,23 +289,6 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       })
   }, []);
 
-  const resetAuthError = useCallback(() => {
-    setAuthError(undefined)
-  }, [])
-
-  useEffect(() => {
-    if (authError)
-      toast({
-        id: authError.code, // used to prevent duplicate
-        title: authError?.title,
-        description: authError?.message,
-        status: 'error',
-        duration: 6000,
-        isClosable: true,
-        position: 'top'
-      })
-  }, [authError])
-
   useEffect(() => {
     if (authState.alert?.showToast)
       toast({
@@ -343,7 +298,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
         status: authState.alert?.severity,
         duration: 6000,
         isClosable: true,
-        position: 'top'
+        position: 'top',
       })
   }, [authState.alert])
 
@@ -352,7 +307,19 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     async (email: string, password: string) => {
       await auth.signInWithEmailAndPassword(email, password)(
         (credential) => { },
-        setAuthError
+        (error) => {
+          console.log(error)
+          setAuthState(prev => ({
+            ...prev,
+            alert: {
+              code: error.code,
+              title: error.title,
+              message: error.message,
+              severity: 'error',
+              showToast: true,
+            }
+          }))
+        }
       )
     },
     []
@@ -369,7 +336,18 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     async (email: string, password: string) => {
       await auth.createUserWithEmailAndPassword(email, password)(
         (credential) => { },
-        setAuthError
+        (error) => {
+          setAuthState(prev => ({
+            ...prev,
+            alert: {
+              code: error.code,
+              title: error.title,
+              message: error.message,
+              severity: 'error',
+              showToast: true,
+            }
+          }))
+        }
       );
     },
     []
@@ -390,7 +368,16 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
             setAuthState(defaultStates.INVALID_SIGN_IN_LINK);
             return;
           }
-          setAuthError(error)
+          setAuthState(prev => ({
+            ...prev,
+            alert: {
+              code: error.code,
+              title: error.title,
+              message: error.message,
+              severity: 'error',
+              showToast: true,
+            }
+          }))
         });
     },
     []
@@ -398,13 +385,24 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
 
   const sendSignInLinkToEmail = useCallback(
     async (email: string) => {
-      const result = await auth.sendSignInLinkToEmail(email);
-      if (result.error) {
-        setAuthError(result.error)
-        return false
-      }
-      setAuthState(defaultStates.SIGN_IN_LINK_SENT_TO_EMAIL)
-      return true;
+      await auth.sendSignInLinkToEmail(
+        email,
+        () => {
+          setAuthState(defaultStates.SIGN_IN_LINK_SENT_TO_EMAIL)
+        },
+        (error) => {
+          setAuthState(prev => ({
+            ...prev,
+            alert: {
+              code: error.code,
+              title: error.title,
+              message: error.message,
+              severity: 'error',
+              showToast: true,
+            }
+          }))
+        }
+      );
     },
     []
   );
@@ -448,9 +446,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     <authUserContext.Provider value={{
       authUser,
       loading,
-      authError,
       authState,
-      resetAuthError,
       signInWithSocialLogin,
       signInWithEmailAndPassword,
       sendSignInLinkToEmail,

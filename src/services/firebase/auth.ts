@@ -255,34 +255,26 @@ export default {
         }),
     isSignInWithEmailLink: () => isSignInWithEmailLink(auth, window.location.href),
     saveEmailForSignIn,
-    sendSignInLinkToEmail: (email: string): Promise<Response> => sendSignInLinkToEmail(auth, email, {
-        url: 'http://localhost:3000/signin',
-        handleCodeInApp: true,
-    }).then(() => {
-        // The link was successfully sent. Inform the user.
-        // Save the email locally so you don't need to ask the user for it again
-        // if they open the link on the same device.
-        saveEmailForSignIn(email)
-        const response: Response = {
-            success: true,
-            type: 'success'
-        }
-        return response;
-    }).catch((error: FirebaseError) => {
-        console.log(error.code)
-        if (AuthErrorMapper[error.code]) {
-            return {
-                error: AuthErrorMapper[error.code],
-                type: "error",
-                success: false
+    sendSignInLinkToEmail: (email: string, onSuccess: () => void, onError: (error: AuthError) => void): Promise<void> => {
+        return sendSignInLinkToEmail(auth, email, {
+            url: 'http://localhost:3000/signin',
+            handleCodeInApp: true,
+        }).then(() => {
+            // The link was successfully sent. Inform the user.
+            // Save the email locally so you don't need to ask the user for it again
+            // if they open the link on the same device.
+            saveEmailForSignIn(email)
+            onSuccess()
+        }).catch((error: FirebaseError) => {
+            console.log(error.code)
+            if (AuthErrorMapper[error.code]) {
+                onError(AuthErrorMapper[error.code])
+                return;
             }
-        }
-        return {
-            error: AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE],
-            type: "error",
-            success: false
-        }
-    }),
+            onError(AuthErrorMapper[AuthErrorCodes.GENERIC_ERROR_CODE])
+            return;
+        })
+    },
     signInWithEmailLink: async (onSuccess: (credential: UserCredential) => void, onError: (error: AuthError) => void): Promise<void> => {
         try {
             if (isSignInWithEmailLink(auth, location.href)) {

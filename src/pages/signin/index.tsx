@@ -43,14 +43,16 @@ const SignIn: NextPage = () => {
 
 
   const submitHandler = useCallback(async (values: SignInFormData) => {
-    console.log(authState?.submit.action)
     switch (authState?.submit.action) {
       case 'signInWithPassword':
-        await signInWithEmailAndPassword(values.email, values.password)
+        await signInWithEmailAndPassword(values.email, values.password);
+        break;
       case 'sendSignInLinkToEmail':
         await sendSignInLinkToEmail(values.email)
+        break;
       case 'signInWithEmailLink':
         await signInWithEmailLink(values.email)
+        break;
     }
   }, [
     authState?.submit.action,
