@@ -41,7 +41,6 @@ const SignIn: NextPage = () => {
   });
   const { errors } = formState;
 
-
   const submitHandler = useCallback(async (values: SignInFormData) => {
     switch (authState?.submit.action) {
       case 'signInWithPassword':
@@ -77,7 +76,7 @@ const SignIn: NextPage = () => {
           <Center>
             <DashboardLogo />
           </Center>
-          {authState?.alert &&
+          {authState?.alert?.showCard &&
             <Alert status={authState.alert.severity} borderRadius={'md'}>
               <AlertIcon />
               <Box>

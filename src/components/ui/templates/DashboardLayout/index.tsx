@@ -16,20 +16,9 @@ const PUBLIC_ROUTES = [
 ]
 
 export default function DashboardLayout({ children }: Props) {
-  const { authUser, loading: loadingAuth, isSignInWithEmailLink, signInWithEmailLink } = useAuth()
-  const { push, query, route } = useRouter()
+  const { authUser, loading: loadingAuth } = useAuth()
+  const { route } = useRouter()
   const bg = useColorModeValue('gray.50', 'gray.800')
-  console.log(route)
-  console.log(authUser)
-  console.log(query)
-
-
-  useEffect(() => {
-    if (!loadingAuth && !authUser && !PUBLIC_ROUTES.includes(route)) push(`/signin`)
-    if (!authUser && isSignInWithEmailLink()) {
-      signInWithEmailLink()
-    }
-  }, [loadingAuth, route, authUser, push, isSignInWithEmailLink, signInWithEmailLink])
 
   if (loadingAuth)
     return <Center h="100vh">

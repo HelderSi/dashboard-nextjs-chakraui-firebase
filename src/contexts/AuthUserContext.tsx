@@ -97,7 +97,8 @@ type AuthStateType = {
     title: string;
     message: string;
     severity: 'error' | 'success' | 'warning' | 'info';
-    showToast: boolean;
+    showToast?: boolean;
+    showCard?: boolean;
   };
   socialLogin: {
     disabled: boolean;
@@ -142,7 +143,8 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
       title: 'Link enviado',
       message: 'Acesse seu email e clique no link',
       severity: 'success',
-      showToast: true,
+      showToast: false,
+      showCard: true,
     },
     socialLogin: {
       disabled: true,
@@ -166,7 +168,8 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
       title: 'Você já possui um conta cadastrada!',
       message: 'Digite sua senha para continuar',
       severity: 'warning',
-      showToast: true,
+      showToast: false,
+      showCard: true,
     },
     socialLogin: {
       disabled: true,
@@ -193,6 +196,7 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
       message: 'Favor digitar seu email',
       severity: 'error',
       showToast: true,
+      showCard: true,
     },
     socialLogin: {
       disabled: true,
@@ -217,6 +221,7 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
       message: 'Envie o link novamente',
       severity: 'error',
       showToast: true,
+      showCard: true,
     },
     socialLogin: {
       disabled: true,
@@ -235,6 +240,11 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
   }
 }
 
+const PUBLIC_ROUTES = [
+  '/signin',
+  '/signup',
+  '/forgot-pw'
+]
 
 export function AuthUserProvider({ children }: AuthUserProviderProps) {
   const [authUser, setAuthUser] = useState<UserType | null>(null)
@@ -243,6 +253,10 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
 
   const router = useRouter();
   const toast = useToast()
+
+  useEffect(() => {
+    if (!loading && !authUser && !PUBLIC_ROUTES.includes(router.route)) router.push(`/signin`)
+  }, [loading, router.route, authUser, router.push])
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(
@@ -302,6 +316,42 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       })
   }, [authState.alert])
 
+  const signInWithEmailLink = useCallback(
+    async (email?: string) => {
+      email && auth.saveEmailForSignIn(email)
+      await auth.signInWithEmailLink(
+        (credential) => { },
+        (error) => {
+          console.log(error)
+          if (error.code === AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY) {
+            setAuthState(defaultStates.EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK)
+            return;
+          }
+          if (error.code === AuthErrorCodes.INVALID_OOB_CODE) {
+            setAuthState(defaultStates.INVALID_SIGN_IN_LINK);
+            return;
+          }
+          setAuthState(prev => ({
+            ...prev,
+            alert: {
+              code: error.code,
+              title: error.title,
+              message: error.message,
+              severity: 'error',
+              showToast: true,
+            }
+          }))
+        });
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!authUser && auth.isSignInWithEmailLink()) {
+      signInWithEmailLink()
+    }
+  }, [authUser, signInWithEmailLink])
+
 
   const signInWithEmailAndPassword = useCallback(
     async (email: string, password: string) => {
@@ -317,6 +367,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
               message: error.message,
               severity: 'error',
               showToast: true,
+              showCard: false,
             }
           }))
         }
@@ -353,35 +404,7 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
     []
   );
 
-  const signInWithEmailLink = useCallback(
-    async (email?: string) => {
-      email && auth.saveEmailForSignIn(email)
-      await auth.signInWithEmailLink(
-        (credential) => { },
-        (error) => {
-          console.log(error)
-          if (error.code === AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY) {
-            setAuthState(defaultStates.EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK)
-            return;
-          }
-          if (error.code === AuthErrorCodes.INVALID_OOB_CODE) {
-            setAuthState(defaultStates.INVALID_SIGN_IN_LINK);
-            return;
-          }
-          setAuthState(prev => ({
-            ...prev,
-            alert: {
-              code: error.code,
-              title: error.title,
-              message: error.message,
-              severity: 'error',
-              showToast: true,
-            }
-          }))
-        });
-    },
-    []
-  );
+
 
   const sendSignInLinkToEmail = useCallback(
     async (email: string) => {
