@@ -6,7 +6,7 @@ import {
   createContext,
   useContext,
 } from "react";
-import { useToast } from "@chakra-ui/react";
+import { Center, Spinner, useToast } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
 import { authConfig } from "../configs/auth";
@@ -88,7 +88,7 @@ interface AuthUserProviderProps {
   children: ReactNode;
 }
 
-type StateCodes = 'INITIAL' | 'SIGN_IN_LINK_SENT_TO_EMAIL' | 'PASSWORD_REQUIRED_FOR_EMAIL' | 'EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK' | 'INVALID_SIGN_IN_LINK'
+type StateCodes = 'INITIAL' | 'SIGN_IN_LINK_SENT_TO_EMAIL' | 'SIGN_IN_WITH_LINK_REQUIRED' | 'PASSWORD_REQUIRED_FOR_EMAIL' | 'EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK' | 'INVALID_SIGN_IN_LINK'
 
 type AuthStateType = {
   code: StateCodes,
@@ -148,6 +148,31 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
     },
     socialLogin: {
       disabled: true,
+    },
+    emailInput: {
+      disabled: false,
+    },
+    passwordInput: {
+      disabled: true,
+    },
+    submit: {
+      disabled: true,
+      action: 'sendSignInLinkToEmail',
+      title: 'Reenviar link'
+    }
+  },
+  SIGN_IN_WITH_LINK_REQUIRED: {
+    code: 'SIGN_IN_WITH_LINK_REQUIRED',
+    alert: {
+      code: 'auth/sign_in_with_link_required',
+      title: 'Erro',
+      message: 'Faça login utilizando o link',
+      severity: 'error',
+      showToast: true,
+      showCard: true,
+    },
+    socialLogin: {
+      disabled: false,
     },
     emailInput: {
       disabled: false,
@@ -300,6 +325,19 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
           if (router.route === '/signup')
             router.push('/signin')
         }
+        if (error.code === AuthErrorCodes.SIGN_IN_WITH_LINK_REQUIRED) {
+          setAuthState({
+            ...defaultStates.SIGN_IN_WITH_LINK_REQUIRED,
+            emailInput: {
+              ...defaultStates.SIGN_IN_WITH_LINK_REQUIRED.emailInput,
+              initialValue: error.email,
+              disabled: false,
+            }
+          })
+          if (router.route === '/signup')
+            router.push('/signin')
+        }
+
       })
   }, []);
 
@@ -322,7 +360,6 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       await auth.signInWithEmailLink(
         (credential) => { },
         (error) => {
-          console.log(error)
           if (error.code === AuthErrorCodes.EMAIL_NOT_FOUND_LOCALLY) {
             setAuthState(defaultStates.EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK)
             return;
@@ -358,7 +395,6 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       await auth.signInWithEmailAndPassword(email, password)(
         (credential) => { },
         (error) => {
-          console.log(error)
           setAuthState(prev => ({
             ...prev,
             alert: {
@@ -483,7 +519,13 @@ export function AuthUserProvider({ children }: AuthUserProviderProps) {
       getAvailableMethods,
       isSignInWithEmailLink,
     }}>
-      {children}
+      {
+        loading ?
+          <Center h="100vh">
+            <Spinner size='lg' />
+          </Center>
+          : children
+      }
     </authUserContext.Provider>
   );
 }

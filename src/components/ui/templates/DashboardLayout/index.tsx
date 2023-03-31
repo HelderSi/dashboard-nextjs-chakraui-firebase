@@ -1,35 +1,13 @@
-import { useEffect, ReactNode } from "react";
-import { Center, Flex, Spinner, useColorModeValue } from "@chakra-ui/react";
+import { ReactNode } from "react";
+import { Flex, useColorModeValue } from "@chakra-ui/react";
 import { Header } from "components/ui/organisms/Header";
 import { Sidebar } from "components/ui/organisms/Sidebar";
-import { useAuth } from "../../../../contexts/AuthUserContext";
-import { useRouter } from "next/router";
-
 interface Props {
   children: ReactNode;
 }
 
-const PUBLIC_ROUTES = [
-  '/signin',
-  '/signup',
-  '/forgot-pw'
-]
-
 export default function DashboardLayout({ children }: Props) {
-  const { authUser, loading: loadingAuth } = useAuth()
-  const { route } = useRouter()
   const bg = useColorModeValue('gray.50', 'gray.800')
-
-  if (loadingAuth)
-    return <Center h="100vh">
-      <Spinner size='lg' />
-    </Center>
-
-  if (PUBLIC_ROUTES.includes(route)) return <>{children}</>
-  if (!authUser)
-    return <Center h="100vh">
-      <Spinner size='lg' />
-    </Center>
   return (
     <Flex direction="row">
       <Sidebar />

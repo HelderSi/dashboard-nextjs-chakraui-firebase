@@ -72,7 +72,6 @@ const ProfileEdit: NextPage = () => {
                 position: 'top'
             })
         }).catch(err => {
-            console.log(err.message)
             setSendingVerificationEmail(false)
             toast({
                 title: 'Erro',

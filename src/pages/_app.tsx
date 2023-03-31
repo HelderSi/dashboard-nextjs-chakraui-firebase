@@ -4,16 +4,27 @@ import theme from "styles/theme";
 import { AuthUserProvider } from 'contexts/AuthUserContext'
 import { SidebarDrawerProvider } from "contexts/SidebarDrawerContext";
 import DashboardLayout from "components/ui/templates/DashboardLayout";
+import { useRouter } from "next/router";
 
+const PUBLIC_ROUTES = [
+  '/signin',
+  '/signup',
+  '/forgot-pw'
+]
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const { route } = useRouter()
 
   return <ChakraProvider theme={theme}>
     <AuthUserProvider>
       <SidebarDrawerProvider>
-        <DashboardLayout>
-          <Component {...pageProps} />
-        </DashboardLayout>
+        {
+          PUBLIC_ROUTES.includes(route) ?
+            <Component {...pageProps} />
+            : <DashboardLayout>
+              <Component {...pageProps} />
+            </DashboardLayout>
+        }
       </SidebarDrawerProvider>
     </AuthUserProvider>
   </ChakraProvider>

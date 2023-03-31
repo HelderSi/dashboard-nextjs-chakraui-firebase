@@ -27,7 +27,9 @@ import {
     sendSignInLinkToEmail,
     signInWithEmailLink,
     isSignInWithEmailLink,
-    UserCredential
+    UserCredential,
+    signInWithCredential,
+    unlink,
 } from 'firebase/auth';
 import { ValueOf } from '../../utils/types/ValueOf';
 import init from './init'
@@ -82,6 +84,7 @@ export const AuthErrorCodes = {
     NOT_A_LOGIN_LINK: "auth/not-a-login-link" as "auth/not-a-login-link",
     REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD: "auth/required-sign-in-with-email-and-password" as "auth/required-sign-in-with-email-and-password",
     EMAIL_NOT_FOUND_LOCALLY: "auth/email-not-found-locally" as "auth/email-not-found-locally",
+    SIGN_IN_WITH_LINK_REQUIRED: "auth/sign-in-with-link-required" as "auth/sign-in-with-link-required",
 }
 
 export type AuthError = {
@@ -107,6 +110,11 @@ const AuthErrorMapper: {
         title: "Erro",
         message: "Um erro não identificado ocorreu",
         code: AuthErrorCodes.GENERIC_ERROR_CODE
+    },
+    [AuthErrorCodes.SIGN_IN_WITH_LINK_REQUIRED]: {
+        title: "Erro",
+        message: "Faça login utilizando o link",
+        code: AuthErrorCodes.SIGN_IN_WITH_LINK_REQUIRED
     },
     [AuthErrorCodes.NOT_A_LOGIN_LINK]: {
         title: "Erro",
@@ -163,7 +171,7 @@ export default {
     signInWithEmailAndPassword: (email: string, password: string) =>
         (onSuccess: (credential: UserCredential) => void, onError: (error: AuthError) => void) =>
             signInWithEmailAndPassword(auth, email, password).then(onSuccess).catch(error => {
-                console.log(error)
+
                 if (error instanceof FirebaseError) {
                     if (AuthErrorMapper[error.code]) {
                         onError(AuthErrorMapper[error.code])
@@ -214,7 +222,7 @@ export default {
             const token = credential.accessToken;
             onSuccess(result)
         }).catch((error: FirebaseError) => {
-            console.log(error)
+
             // Handle Errors here.
             if (error.code === AuthErrorCodes.NEED_CONFIRMATION) { // "auth/account-exists-with-different-credential"
                 // User's email already exists.
@@ -224,16 +232,22 @@ export default {
                 const email = error.customData?.email as string;
                 // save pending credention on sessionStorage
                 sessionStorage.setItem(`oauth:${email}`, JSON.stringify(pendingCredential));
-                console.log(email)
+
                 // Get sign-in methods for this email.
                 fetchSignInMethodsForEmail(auth, email).then(methods => {
-                    console.log(methods)
+
                     // If the user has several sign-in methods,
                     // the first method in the list will be the "recommended" method to use.
+
                     if (methods[0] === 'password') {
                         // Asks the user their password.
                         onError({
                             ...AuthErrorMapper[AuthErrorCodes.REQUIRED_SIGN_IN_WITH_EMAIL_AND_PASSWORD],
+                            email
+                        })
+                    } else if (methods[0] === 'emailLink') {
+                        onError({
+                            ...AuthErrorMapper[AuthErrorCodes.SIGN_IN_WITH_LINK_REQUIRED],
                             email
                         })
                     } else {
@@ -266,7 +280,6 @@ export default {
             saveEmailForSignIn(email)
             onSuccess()
         }).catch((error: FirebaseError) => {
-            console.log(error.code)
             if (AuthErrorMapper[error.code]) {
                 onError(AuthErrorMapper[error.code])
                 return;
@@ -304,7 +317,6 @@ export default {
                 onError(AuthErrorMapper[AuthErrorCodes.NOT_A_LOGIN_LINK])
             }
         } catch (error) {
-            console.log(error)
             if (error instanceof FirebaseError) {
                 if (AuthErrorMapper[error.code]) {
                     onError(AuthErrorMapper[error.code])
@@ -318,7 +330,6 @@ export default {
     createUserWithEmailAndPassword: (email: string, password: string) =>
         (onSuccess: (credential: UserCredential) => void, onError: (error: AuthError) => void) =>
             createUserWithEmailAndPassword(auth, email, password).then(onSuccess).catch(error => {
-                console.log(error)
                 if (error instanceof FirebaseError) {
                     if (AuthErrorMapper[error.code]) {
                         onError(AuthErrorMapper[error.code])

@@ -43,7 +43,6 @@ const ForgotPassword: NextPage = () => {
           position: 'top'
         })
       }).catch(err => {
-        console.log(err.message)
         toast({
           title: 'Erro',
           description: 'Ocorreu um erro ao enviar',
