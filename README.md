@@ -95,7 +95,7 @@ export const authConfig = {
 
 ### Login
 
-![alt text](screenshots/dash-login.png)
+![alt text](screenshots/dash-login.jpeg)
 
 ### Main
 
