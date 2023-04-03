@@ -3,15 +3,15 @@ import type { NextPage } from 'next'
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Input } from 'src/components/ui/atoms/Input';
+import { Input } from 'components/ui/atoms/Input';
 import { Flex, Stack, Text, Box } from '@chakra-ui/layout';
 import { Avatar, Heading, useColorModeValue, useToast } from '@chakra-ui/react'
 import { Button } from '@chakra-ui/button';
 import { Icon } from '@chakra-ui/icon';
-import { useAuth } from 'src/contexts/AuthUserContext';
-import { storage } from 'src/services/firebase';
+import { useAuth } from 'contexts/AuthUserContext';
+import { storage } from 'services/firebase';
 import { RiErrorWarningLine } from "react-icons/ri";
-import UserAvatarEditor from 'src/components/ui/molecules/UserAvatarEditor';
+import UserAvatarEditor from 'components/ui/molecules/UserAvatarEditor';
 
 type ProfileFormData = {
     name: string;
@@ -72,7 +72,6 @@ const ProfileEdit: NextPage = () => {
                 position: 'top'
             })
         }).catch(err => {
-            console.log(err.message)
             setSendingVerificationEmail(false)
             toast({
                 title: 'Erro',
@@ -101,7 +100,7 @@ const ProfileEdit: NextPage = () => {
                 pt="2"
                 maxW="500"
             >
-                <Box w="100%"  pt="6" pb="4">
+                <Box w="100%" pt="6" pb="4">
                     <Heading size='md'>Informações públicas</Heading>
                 </Box>
                 <Box p="8" boxShadow='xs' rounded='md' bgColor={cardBg}>

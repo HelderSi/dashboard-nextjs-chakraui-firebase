@@ -2,11 +2,11 @@ import type { NextPage } from 'next'
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Input } from 'src/components/ui/atoms/Input';
+import { Input } from 'components/ui/atoms/Input';
 import { Flex, Stack, Center, Heading } from '@chakra-ui/layout';
 import { Button, useColorModeValue } from '@chakra-ui/react';
-import DashboardLogo from 'src/components/ui/atoms/DashboardLogo';
-import { useAuth } from 'src/contexts/AuthUserContext';
+import DashboardLogo from 'components/ui/atoms/DashboardLogo';
+import { useAuth } from 'contexts/AuthUserContext';
 import { useRouter } from 'next/router';
 import { useToast } from '@chakra-ui/toast';
 
@@ -19,13 +19,16 @@ const signInFormSchema = yup.object().shape({
 })
 
 const ForgotPassword: NextPage = () => {
+  const { query } = useRouter()
   const { register, handleSubmit, formState } = useForm<SignInFormData>({
-    resolver: yupResolver(signInFormSchema)
+    resolver: yupResolver(signInFormSchema),
+    defaultValues: {
+      email: Array.isArray(query?.email) ? "" : query.email
+    },
   });
   const { errors } = formState;
 
   const { sendPasswordResetEmail } = useAuth()
-  const router = useRouter()
   const toast = useToast()
 
   const handleSendPasswordResetEmail = (values: SignInFormData) => {
@@ -40,10 +43,9 @@ const ForgotPassword: NextPage = () => {
           position: 'top'
         })
       }).catch(err => {
-        console.log(err.message)
         toast({
           title: 'Erro',
-          description: 'Ocorreu um erro ao logar',
+          description: 'Ocorreu um erro ao enviar',
           status: 'error',
           duration: 3000,
           isClosable: true,

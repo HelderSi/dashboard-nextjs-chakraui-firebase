@@ -13,8 +13,8 @@ import { useToast } from "@chakra-ui/toast";
 import AvatarEditor from "react-avatar-editor";
 import FileUpload from "../../atoms/FileUpload";
 
-import { storage } from "src/services/firebase";
-import { useAuth } from "src/contexts/AuthUserContext";
+import { storage } from "services/firebase";
+import { useAuth } from "contexts/AuthUserContext";
 
 export default function UserAvatarEditor() {
   const [imageUrl, setImageUrl] = useState("");

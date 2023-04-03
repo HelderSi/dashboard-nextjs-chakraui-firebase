@@ -16,7 +16,7 @@ import {
   HStack,
 } from "@chakra-ui/react";
 
-import { useAuth } from "src/contexts/AuthUserContext";
+import { useAuth } from "contexts/AuthUserContext";
 
 interface ProfileProps {
   showProfileData?: boolean;
@@ -54,7 +54,7 @@ export function Profile({ showProfileData = true }: ProfileProps) {
 
               <Button variant="link" href={"/profile/edit"} as={Link}>Editar</Button>
               <Button variant="link" href={"/profile/change-pw"} as={Link}>Alterar senha</Button>
-              
+
               <Divider />
               <Button variant="link" color="red.400" isLoading={loadingAuth} onClick={signOut}>
                 Sair

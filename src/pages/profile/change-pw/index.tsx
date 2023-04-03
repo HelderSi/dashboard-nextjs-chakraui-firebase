@@ -2,11 +2,11 @@ import type { NextPage } from "next";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Input } from "src/components/ui/atoms/Input";
+import { Input } from "components/ui/atoms/Input";
 import { Stack, Box } from "@chakra-ui/layout";
 import { useColorModeValue, useToast } from "@chakra-ui/react";
 import { Button } from "@chakra-ui/button";
-import { useAuth } from "src/contexts/AuthUserContext";
+import { useAuth } from "contexts/AuthUserContext";
 
 type ProfileFormData = {
   oldPassword: string;
@@ -33,7 +33,7 @@ const ChangePassword: NextPage = () => {
   const toast = useToast();
 
   const handleUpdatePassword = async (
-    values : ProfileFormData
+    values: ProfileFormData
   ) => {
     try {
       await updateCurrentUserPassword(values.oldPassword, values.newPassword);
