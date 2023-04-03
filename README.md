@@ -6,13 +6,15 @@ A front-end dashboard template for fast starting.
 
 - Atomic Design
 
-## Features
+## Login options
 
-- Social Login
-  - Google
-  - Facebook
-  - Twitter
-  - Github
+- Google
+- Facebook
+- Twitter
+- Github
+- Apple
+- Login with link
+- Email and Password
 
 ## Dark/Light Mode
 
@@ -54,6 +56,39 @@ Then, run it:
 npm run dev
 # or
 yarn dev
+```
+
+## Auth Configs
+
+Edit src/configs/auth.ts
+
+```ts
+export const authConfig = {
+  email: {
+    enabled: true,
+    withoutPassword: true,
+  },
+  social: {
+    enabled: true,
+    providers: {
+      google: {
+        enabled: true,
+      },
+      facebook: {
+        enabled: true,
+      },
+      github: {
+        enabled: true,
+      },
+      apple: {
+        enabled: true,
+      },
+      twitter: {
+        enabled: true,
+      },
+    },
+  },
+};
 ```
 
 ## Screenshots

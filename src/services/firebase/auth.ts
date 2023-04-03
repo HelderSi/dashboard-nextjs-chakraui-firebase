@@ -113,7 +113,7 @@ const AuthErrorMapper: {
     },
     [AuthErrorCodes.SIGN_IN_WITH_LINK_REQUIRED]: {
         title: "Erro",
-        message: "Faça login utilizando o link",
+        message: "Faça login utilizando seu email",
         code: AuthErrorCodes.SIGN_IN_WITH_LINK_REQUIRED
     },
     [AuthErrorCodes.NOT_A_LOGIN_LINK]: {
@@ -330,6 +330,7 @@ export default {
     createUserWithEmailAndPassword: (email: string, password: string) =>
         (onSuccess: (credential: UserCredential) => void, onError: (error: AuthError) => void) =>
             createUserWithEmailAndPassword(auth, email, password).then(onSuccess).catch(error => {
+                console.log(error)
                 if (error instanceof FirebaseError) {
                     if (AuthErrorMapper[error.code]) {
                         onError(AuthErrorMapper[error.code])

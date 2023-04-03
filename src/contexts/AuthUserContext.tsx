@@ -166,7 +166,7 @@ const defaultStates: Record<StateCodes, AuthStateType> = {
     alert: {
       code: 'auth/sign_in_with_link_required',
       title: 'Erro',
-      message: 'Faça login utilizando o link',
+      message: 'Faça login via email',
       severity: 'error',
       showToast: true,
       showCard: true,
