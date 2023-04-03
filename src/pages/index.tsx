@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { Flex } from '@chakra-ui/layout';
 import { Spinner } from '@chakra-ui/react'
-import { useAuth } from 'src/contexts/AuthUserContext';
+import { useAuth } from 'contexts/AuthUserContext';
 
 const Dashboard: NextPage = () => {
   const { loading: loadingAuth } = useAuth()

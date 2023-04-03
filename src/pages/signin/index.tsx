@@ -1,15 +1,20 @@
 import type { NextPage } from "next";
+import NextLink from "next/link";
+
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Input } from "src/components/ui/atoms/Input";
-import { Flex, HStack, Stack, Text, Box, Center } from "@chakra-ui/layout";
-import { Button, useColorModeValue } from "@chakra-ui/react";
-import DashboardLogo from "src/components/ui/atoms/DashboardLogo";
-import { useAuth } from "src/contexts/AuthUserContext";
-import { useRouter } from "next/router";
-import { useToast } from "@chakra-ui/react";
-import ColorModeToggler from "src/components/ui/molecules/ColorModeToggler";
+import { Input } from "components/ui/atoms/Input";
+import { Flex, HStack, Stack, Text, Center } from "@chakra-ui/layout";
+
+import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, Button, useColorModeValue } from "@chakra-ui/react";
+import DashboardLogo from "components/ui/atoms/DashboardLogo";
+import { useAuth } from "../../contexts/AuthUserContext";
+import ColorModeToggler from "components/ui/molecules/ColorModeToggler";
+import { SocialLogin } from "components/ui/organisms/SocialLogin";
+import { TextDivider } from "components/ui/atoms/TextDivider";
+import { authConfig } from "../../configs/auth";
+import { useCallback } from "react";
 
 type SignInFormData = {
   email: string;
@@ -18,44 +23,51 @@ type SignInFormData = {
 
 const signInFormSchema = yup.object().shape({
   email: yup.string().required("E-mail obrigatório.").email("E-mail inválido."),
-  password: yup.string().required("Senha obrigatória."),
+  password: authConfig.email.withoutPassword ? yup.string().optional() : yup.string().required("Senha obrigatória."),
 });
 
 const SignIn: NextPage = () => {
-  const { signInWithEmailAndPassword } = useAuth();
-  const { register, handleSubmit, formState } = useForm<SignInFormData>({
+  const {
+    signInWithEmailAndPassword,
+    sendSignInLinkToEmail,
+    signInWithEmailLink,
+    authState
+  } = useAuth();
+  const { register, handleSubmit, formState, } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormSchema),
+    defaultValues: {
+      email: authState?.emailInput.initialValue || ""
+    }
   });
   const { errors } = formState;
-  const router = useRouter()
-  const toast = useToast()
 
-  const handleSignIn =  (values: SignInFormData) => {
-    signInWithEmailAndPassword(values.email, values.password)
-      .then( () => {
-        router.push('/')
-      }).catch( err => {
-        console.log(err.message)
-        toast({
-          title: 'Erro',
-          description: 'Ocorreu um erro ao logar',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-          position: 'top'
-
-        })
-      })
-  };
+  const submitHandler = useCallback(async (values: SignInFormData) => {
+    switch (authState?.submit.action) {
+      case 'signInWithPassword':
+        await signInWithEmailAndPassword(values.email, values.password);
+        break;
+      case 'sendSignInLinkToEmail':
+        await sendSignInLinkToEmail(values.email)
+        break;
+      case 'signInWithEmailLink':
+        await signInWithEmailLink(values.email)
+        break;
+    }
+  }, [
+    authState?.submit.action,
+    signInWithEmailAndPassword,
+    sendSignInLinkToEmail,
+    signInWithEmailLink
+  ])
 
   return (
     <Flex w="100vw" h="100vh" align="center" justify="center">
       <Flex
         as="form"
-        onSubmit={handleSubmit(handleSignIn)}
+        onSubmit={handleSubmit(submitHandler)}
         width="100%"
         maxWidth={360}
-        bg={useColorModeValue("gray.50","gray.700")}
+        bg={useColorModeValue("gray.50", "gray.700")}
         p="8"
         borderRadius={8}
         flexDir="column"
@@ -64,31 +76,64 @@ const SignIn: NextPage = () => {
           <Center>
             <DashboardLogo />
           </Center>
-          <Input
-            type="email"
-            label="E-mail"
-            error={errors.email}
-            {...register("email")}
-          />
+          {authState?.alert?.showCard &&
+            <Alert status={authState.alert.severity} borderRadius={'md'}>
+              <AlertIcon />
+              <Box>
+                <AlertTitle>{authState.alert.title}</AlertTitle>
+                <AlertDescription>
+                  {authState.alert.message}
+                </AlertDescription>
+              </Box>
+            </Alert>}
+          {
+            authState?.socialLogin.disabled ||
+            <>
+              <SocialLogin />
+              <TextDivider text="ou" />
+            </>
+          }
+          {authState?.emailInput.disabled ||
+            <Input
+              type="email"
+              label="E-mail"
+              autoFocus={authState?.code === 'EMAIL_REQUIRED_FOR_SIGN_IN_FROM_LINK'}
+              error={errors.email}
+              {...register("email")}
+            />}
 
-          <Input
-            type="password"
-            label="Senha"
-            error={errors.password}
-            {...register("password")}
-          />
+          {authState?.passwordInput.requiredForEmail &&
+            <HStack>
+              <Text as='b'>
+                Email:
+              </Text>
+              <Text as='b'>
+                {authState.passwordInput.requiredForEmail}
+              </Text>
+            </HStack>}
+
+          {authState?.passwordInput.disabled ||
+            <Input
+              type="password"
+              label="Senha"
+              error={errors.password}
+              autoFocus={!!authState?.passwordInput.requiredForEmail}
+              {...register("password")}
+            />}
         </Stack>
-        <Button
-          alignSelf="flex-end"
-          mt={2}
-          as={"a"}
-          fontSize={"sm"}
-          fontWeight={600}
-          variant={"link"}
-          href={"/forgot-pw"}
-        >
-          Esqueceu sua senha?
-        </Button>
+        {authState?.passwordInput.disabled ||
+          <Button
+            alignSelf="flex-end"
+            mt={2}
+            as={"a"}
+            fontSize={"sm"}
+            fontWeight={600}
+            variant={"link"}
+            href={`/forgot-pw${authState?.passwordInput.requiredForEmail ? `?email=${authState?.passwordInput.requiredForEmail}` : ""}`}
+          >
+            Esqueceu sua senha?
+          </Button>}
+
         <Button
           type="submit"
           mt="4"
@@ -96,25 +141,34 @@ const SignIn: NextPage = () => {
           size="lg"
           isLoading={formState.isSubmitting}
         >
-          Entrar
+          {authState?.submit.title}
         </Button>
-        <HStack mt={4}>
+        {!!authState?.passwordInput.requiredForEmail && <Button
+          mt="4"
+          variant='ghost'
+          size="lg"
+          isLoading={formState.isSubmitting}
+          as="a"
+          href={`/signin`}
+        >
+          Entrar com outra conta
+        </Button>}
+        {!!authState?.passwordInput.requiredForEmail || <HStack mt={4}>
           <Text>Não possui uma conta?</Text>
           <Button
-            as={"a"}
             fontSize={"sm"}
             fontWeight={600}
             variant={"link"}
             href={"/signup"}
+            as={NextLink}
           >
             Cadastre-se
-          </Button> 
-        </HStack>
+          </Button>
+        </HStack>}
         <Center mt='6'>
           <ColorModeToggler />
         </Center>
       </Flex>
-     
     </Flex>
   );
 };
